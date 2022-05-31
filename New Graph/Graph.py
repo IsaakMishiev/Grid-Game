@@ -3,6 +3,7 @@ import pygame, sys, numpy, random, pymunk
 from math import *
 from pymunk import Vec2d
 from sympy import *
+from Levels import *
 
 pygame.init()
 
@@ -30,6 +31,19 @@ interval = 150
 
 font = pygame.font.Font('freesansbold.ttf', 32)
 font1 = pygame.font.Font('freesansbold.ttf', 15)
+
+class Level:
+    def __init__(self, all_spawn_cord, all_stars, active_graphs, level_num):
+        self.all_spawn_cord = all_spawn_cord
+        self.all_stars = all_stars
+        self.level_num = level_num
+        self.active_graphs = active_graphs
+
+    def set_level(self):
+        
+
+
+
 
 def cord_to_pixel(x, y):
     return x * (screenX / grid.max_Lx) + grid.x0, y * -(screenY / grid.max_Ly) + grid.y0
@@ -120,7 +134,7 @@ def draw_line():
                 static.append(create_static(i[j].x, i[j].y, i[j-1].x, i[j-1].y))
 
     
-    print(len(static))
+    
     
     
             

@@ -26,7 +26,7 @@ grey = (150, 150, 150)
 colors = [red, blue, green, orange, black, yellow]
 clock = pygame.time.Clock()
 
-interval = 200
+interval = 150
 
 font = pygame.font.Font('freesansbold.ttf', 32)
 font1 = pygame.font.Font('freesansbold.ttf', 15)
@@ -172,7 +172,7 @@ class Type:
 def create_dynamic(x, y):
     body = pymunk.Body(1, 100)
     body.position = (x, y)
-    shape = pymunk.Circle(body, .3, (0, 0))
+    shape = pymunk.Circle(body, .25, (0, 0))
     shape.friction = 0.5
     shape.collision_type = COLLTYPE_BALL
     space.add(body, shape)
@@ -219,7 +219,6 @@ drag = False
 point1 = None
 click = 0
 
-
 calc_points()
 play = True
 while play:
@@ -257,20 +256,6 @@ while play:
                 pygame.quit()
                 sys.exit()
 
-            elif event.key == pygame.K_PLUS or event.key == pygame.K_KP_PLUS:
-                if grid.max_Lx > 4 or grid.max_Ly > 4:
-                    grid.startx += 1
-                    grid.starty += 1
-                    grid.endx -= 1
-                    grid.endy -= 1
-                    calc_points()
-            elif event.key == pygame.K_MINUS or event.key == pygame.K_KP_MINUS:
-                grid.startx -= 1
-                grid.starty -= 1
-                grid.endx += 1
-                grid.endy += 1
-                calc_points()
-
             elif event.key == pygame.K_TAB:
                 if menu:
                     menu = False
@@ -289,10 +274,12 @@ while play:
                                 del i
                             else:
                                 i.content = i.content[:-1]
+                                
                         elif event.key == pygame.K_RETURN:
                             all_types.append(Type(len(all_types), random.choice(colors), ""))
                         else:
                             i.content += event.unicode
+                            calc_points()
 
 
     if event.type == pygame.KEYDOWN:
@@ -367,13 +354,7 @@ while play:
     draw_static()
     Menu()
     
-    #print(len(static), dynamic[0].body.position)
-    clock.tick(165)
-    #print(int(clock.get_fps()))
     
-    #static = []
+    clock.tick(165)
+    print(int(clock.get_fps()))
     pygame.display.update()
-
-    """for i in static:
-        space.remove(i)
-    static = []"""

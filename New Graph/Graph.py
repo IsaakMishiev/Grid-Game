@@ -1,9 +1,12 @@
 from audioop import add
+from cProfile import run
+from ftplib import all_errors
+from re import T
 import pygame, sys, numpy, random, pymunk
 from math import *
 from pymunk import Vec2d
 from sympy import *
-from Levels import *
+
 
 pygame.init()
 
@@ -14,6 +17,7 @@ pygame.display.set_caption("Graph")
 space = pymunk.Space()  
 space.gravity = (0, -1)
 COLLTYPE_BALL = 2
+run_physics = True
 
 # ======== Colors =========
 red = (255, 0, 0)
@@ -24,7 +28,7 @@ black = (0, 0, 0)
 orange = [255, 99, 71]
 yellow = [255, 255, 0]
 grey = (150, 150, 150)
-colors = [red, blue, green, orange, black, yellow]
+colors = [red, blue, green, orange, black]
 clock = pygame.time.Clock()
 
 interval = 150
@@ -33,15 +37,44 @@ font = pygame.font.Font('freesansbold.ttf', 32)
 font1 = pygame.font.Font('freesansbold.ttf', 15)
 
 class Level:
-    def __init__(self, all_spawn_cord, all_stars, active_graphs, level_num):
+    def __init__(self, all_spawn_cord, all_stars_cord, active_graphs, num):
         self.all_spawn_cord = all_spawn_cord
-        self.all_stars = all_stars
-        self.level_num = level_num
+        self.all_stars_cord = all_stars_cord
+        self.num = num
         self.active_graphs = active_graphs
+        self.all_stars = []
+        for i in self.all_stars_cord:
+            self.all_stars.append(Star((i[0], i[1])))
 
     def set_level(self):
+        global dynamic, all_types, run_physics
         
 
+        dynamic = []
+        all_types = []
+        run_physics = True
+        for i in self.all_spawn_cord:
+            dynamic.append(create_dynamic(i[0], i[1]))
+        for i in range(len(self.active_graphs)):
+            all_types.append(Type(i, random.choice(colors), self.active_graphs[i]))
+
+
+
+class Star:
+    def __init__(self, pos):
+        self.pos = pos
+        
+        self.collected = False
+    def draw(self):
+        if not self.collected:
+            self.posc = cord_to_pixel(self.pos[0], self.pos[1])
+            pygame.draw.circle(screen, yellow, (self.posc[0], self.posc[1]), 10)
+    def collide(self):
+        for ball in dynamic:
+            ballx, bally = cord_to_pixel(ball.body.position[0], ball.body.position[1])
+            dist = sqrt((ballx-self.posc[0])**2+(bally-self.posc[1])**2)
+            if dist <= 20:
+                self.collected = True
 
 
 
@@ -50,6 +83,8 @@ def cord_to_pixel(x, y):
 
 def pixel_to_cord(x, y):
     return (x-grid.x0)/(screenX/ grid.max_Lx), -(y-grid.y0)/(screenY/ grid.max_Ly)
+
+
 
 class Point:
     def __init__(self, x, y, color):
@@ -112,10 +147,6 @@ def calc_points():
                 pass
 
     
-    
-
-
-
 def draw_points():
     for i in all_points:
         for j in i:
@@ -133,15 +164,11 @@ def draw_line():
             if j % 2 == 0:
                 static.append(create_static(i[j].x, i[j].y, i[j-1].x, i[j-1].y))
 
-    
-    
-    
-    
-            
 
 grid = Grid(-15, -10, 15, 10)
 grid.render_grid()    
    
+level1 = Level([(0, 5)], [(0, 3), (0, 2)], ["4"], 1) 
 
 menu = True
 protrusion = screenX//4
@@ -186,7 +213,7 @@ class Type:
 def create_dynamic(x, y):
     body = pymunk.Body(1, 100)
     body.position = (x, y)
-    shape = pymunk.Circle(body, .25, (0, 0))
+    shape = pymunk.Circle(body, .35, (0, 0))
     shape.friction = 0.5
     shape.collision_type = COLLTYPE_BALL
     space.add(body, shape)
@@ -201,7 +228,7 @@ def create_static(x1, y1, x2, y2):
     return shape
     
 
-dynamic = [create_dynamic(0, 5)]
+dynamic = []
 static = []
 
 def draw_dynamic():
@@ -232,6 +259,10 @@ all_types = [first]
 drag = False
 point1 = None
 click = 0
+
+all_levels = [level1]
+current_level = 1
+level1.set_level()
 
 calc_points()
 play = True
@@ -360,7 +391,8 @@ while play:
 
 
     screen.fill(white)
-    space.step(1/50)
+    if run_physics:
+        space.step(1/50)
     grid.render_grid()
     draw_points()
     draw_line()
@@ -368,7 +400,14 @@ while play:
     draw_static()
     Menu()
     
+    for i in all_levels:
+        
+        if i.num == current_level:
+            for j in i.all_stars:
+                j.draw()
+                j.collide()
+                
     
     clock.tick(165)
-    print(int(clock.get_fps()))
+    #print(int(clock.get_fps()))
     pygame.display.update()

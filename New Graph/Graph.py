@@ -48,11 +48,9 @@ class Level:
 
     def set_level(self):
         global dynamic, all_types, run_physics
-        
-
         dynamic = []
         all_types = []
-        run_physics = True
+        run_physics = False
         for i in self.all_spawn_cord:
             dynamic.append(create_dynamic(i[0], i[1]))
         for i in range(len(self.active_graphs)):
@@ -309,6 +307,12 @@ while play:
 
             elif event.key == pygame.K_1:
                 dynamic.append(create_dynamic(random.randint(0, 7), 5))
+            
+            elif event.key == pygame.K_SPACE:
+                if run_physics:
+                    run_physics = False
+                else:
+                    run_physics = True
 
 
             if menu:

@@ -13,7 +13,7 @@ screenX = 1500
 screen = pygame.display.set_mode((screenX, screenY))
 pygame.display.set_caption("Graph")
 space = pymunk.Space()  
-space.gravity = (0, -1)
+space.gravity = (0, -2)
 COLLTYPE_BALL = 2
 run_physics = True
 
@@ -34,6 +34,7 @@ interval = 150
 font = pygame.font.Font('freesansbold.ttf', 32)
 font1 = pygame.font.Font('freesansbold.ttf', 15)
 win_sound  = pygame.mixer.Sound('win.wav')
+soft_fail  = pygame.mixer.Sound('soft_fail.wav')
 
 all_levels = []
 
@@ -260,6 +261,9 @@ static = []
 
 def draw_dynamic():
     for ball in dynamic:
+        if -75 > ball.body.position[0] or -100 > ball.body.position[1]:
+            dynamic.remove(ball)
+            soft_fail.play()
         pygame.draw.circle(screen, red, (cord_to_pixel(ball.body.position[0], ball.body.position[1])), 10)
         pygame.draw.circle(screen, black, (cord_to_pixel(ball.body.position[0], ball.body.position[1])), 10, 1)
 

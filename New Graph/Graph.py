@@ -6,7 +6,7 @@ from sympy import *
 
 pygame.init()
 
-screenY = 680
+screenY = 600
 screenX = 1500
 screen = pygame.display.set_mode((screenX, screenY))
 pygame.display.set_caption("Graph")
@@ -84,11 +84,10 @@ class Grid:
 def calc_points():
     global all_points, static
     all_points = []
-    for i in static:
-        space.remove(i)
-    static = []
-    steps = grid.max_Lx / interval
 
+    
+
+    steps = grid.max_Lx / interval
 
     for i in range(len(all_types)):
         all_points.append([])
@@ -98,6 +97,8 @@ def calc_points():
             except: 
                 pass
 
+    
+    
 
 
 
@@ -108,11 +109,20 @@ def draw_points():
             #j.draw()
 
 def draw_line():
+    global static
+    for i in static:
+        space.remove(i)
+    static = []
     for i in all_points:
         for j in range(1, len(i)):
             pygame.draw.line(screen, i[0].color, (i[j].xc, i[j].yc), (i[j-1].xc, i[j-1].yc), 4)
             if j % 2 == 0:
                 static.append(create_static(i[j].x, i[j].y, i[j-1].x, i[j-1].y))
+
+    
+    print(len(static))
+    
+    
             
 
 grid = Grid(-15, -10, 15, 10)
@@ -157,25 +167,25 @@ class Type:
             pygame.draw.rect(screen, black, (protrusion, self.pos*75, 150, 50), 2)
             pygame.draw.rect(screen, black, (protrusion+150, self.pos*75, 150, 50), 2)
 
-        
-
+    
 
 def create_dynamic(x, y):
     body = pymunk.Body(1, 100)
     body.position = (x, y)
-    shape = pymunk.Circle(body, .25, (0, 0))
+    shape = pymunk.Circle(body, .3, (0, 0))
     shape.friction = 0.5
     shape.collision_type = COLLTYPE_BALL
     space.add(body, shape)
     return shape
 
 def create_static(x1, y1, x2, y2):
+    
     p1 = Vec2d(x1, y1)
     p2 = Vec2d(x2, y2)
     shape = pymunk.Segment(space.static_body, p1, p2, 0.0)
     space.add(shape)
     return shape
-
+    
 
 dynamic = [create_dynamic(0, 5)]
 static = []
@@ -185,33 +195,21 @@ def draw_dynamic():
         pygame.draw.circle(screen, red, (cord_to_pixel(ball.body.position[0], ball.body.position[1])), 10)
         pygame.draw.circle(screen, black, (cord_to_pixel(ball.body.position[0], ball.body.position[1])), 10, 1)
 
-def draw_static1():      # dont draw in final game (just for testing)
-    global static
-    for line in static:
-        body = line.body
-        p1x = (static[0].body.position + line.a.rotated(body.angle))[0]     # pixel based so input must be pixel
-        p1y = (static[0].body.position + line.a.rotated(body.angle))[1]
-        p2x = (static[0].body.position + line.b.rotated(body.angle))[0]
-        p2y = (static[0].body.position + line.b.rotated(body.angle))[1]
-        pygame.draw.line(screen, blue, (p1x, p1y), (p2x, p2y))
-    
 
 
 def draw_static():
     global static
+    
     for line in static:
         body = line.body
-
         pv1 = body.position + line.a.rotated(body.angle)
         pv2 = body.position + line.b.rotated(body.angle)
         p1 = cord_to_pixel(pv1.x, pv1.y)
         p2 = cord_to_pixel(pv2.x, pv2.y)
         pygame.draw.lines(screen, blue, False, [p1, p2])
-
-
-
-
     
+
+
 first = Type(0, red, "x")
 second = Type(1, blue, "tan(x)")
 all_types = [first]
@@ -253,8 +251,6 @@ while play:
                 calc_points()
                 click = 0
 
-
-            
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
@@ -317,8 +313,6 @@ while play:
             grid.endy += -.3
 
 
-
-
     if protrusion - 10 <= mouse[0] <= protrusion + 10:
         pygame.mouse.set_cursor(7)
 
@@ -333,8 +327,6 @@ while play:
                 pygame.mouse.set_cursor(0)
     else:
         pygame.mouse.set_cursor(3)
-
-
     
 
     if pygame.mouse.get_pressed()[0]:       # PRESS MOUSE
@@ -374,9 +366,14 @@ while play:
     draw_dynamic()
     draw_static()
     Menu()
+    
     #print(len(static), dynamic[0].body.position)
     clock.tick(165)
     #print(int(clock.get_fps()))
-
-
+    
+    #static = []
     pygame.display.update()
+
+    """for i in static:
+        space.remove(i)
+    static = []"""

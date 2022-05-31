@@ -34,6 +34,7 @@ interval = 150
 font = pygame.font.Font('freesansbold.ttf', 32)
 font1 = pygame.font.Font('freesansbold.ttf', 15)
 
+all_levels = []
 
 class Button:
     def __init__(self, x, y, width, height, color, text):
@@ -79,6 +80,7 @@ class Level:
             dynamic.append(create_dynamic(i[0], i[1]))          # run this outside this lol
         for i in range(len(self.active_graphs)):
             all_types.append(Type(i, random.choice(colors), self.active_graphs[i]))
+        all_levels.append(self)
 
         
 
@@ -283,10 +285,14 @@ all_types = [first]
 drag = False
 point1 = None
 click = 0
-level1 = Level([(0, 5)], [(0, 3), (0, 2)], ["x**2 + 6"], 1) 
-level2 = Level([(1, 1)], [(1, 1), (1, 1)], ["x+3"], 2) 
 
-all_levels = [level1, level2]
+
+
+Level([(0, 5)], [(0, 3), (0, 2)], ["x**2 + 6"], 1) 
+Level([(1, 1)], [(1, 1), (1, 1)], ["x+3"], 2) 
+
+
+
 current_level = 1
 level_passed = True
 

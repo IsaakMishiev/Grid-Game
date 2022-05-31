@@ -6,6 +6,8 @@ from sympy import *
 
 pygame.init()
 
+debug = True
+
 screenY = 600
 screenX = 1500
 screen = pygame.display.set_mode((screenX, screenY))
@@ -282,7 +284,7 @@ drag = False
 point1 = None
 click = 0
 level1 = Level([(0, 5)], [(0, 3), (0, 2)], ["x**2 + 6"], 1) 
-level2 = Level([(5, 5)], [(0, 3), (0, 2)], ["x**2 + 6"], 2) 
+level2 = Level([(1, 1)], [(1, 1), (1, 1)], ["x+3"], 2) 
 
 all_levels = [level1, level2]
 current_level = 1
@@ -435,6 +437,7 @@ while play:
     draw_dynamic()
     draw_static()
     Menu()
+
     if level_passed:
         next_button.draw()
     
@@ -447,7 +450,7 @@ while play:
                 if j.collected:
                     amount_collected += 1
                 
-                if amount_collected == len(i.all_stars):
+                if amount_collected == len(i.all_stars) or debug:
                     level_passed = True
                 else:
                     level_passed = False
@@ -455,4 +458,4 @@ while play:
     clock.tick(165)
     #print(int(clock.get_fps()))
     pygame.display.update()
-    print(current_level)
+    

@@ -1,7 +1,3 @@
-from audioop import add
-from cProfile import run
-from ftplib import all_errors
-from re import T
 import pygame, sys, numpy, random, pymunk
 from math import *
 from pymunk import Vec2d
@@ -36,6 +32,34 @@ interval = 150
 font = pygame.font.Font('freesansbold.ttf', 32)
 font1 = pygame.font.Font('freesansbold.ttf', 15)
 
+
+class Button:
+    def __init__(self, x, y, width, height, color, text):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.color = color
+        self.text = text
+
+    def draw(self):
+        pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
+        pygame.draw.rect(screen, black, (self.x, self.y, self.width, self.height), 5)
+
+        font = pygame.font.Font(None, 25)
+        text = font.render((self.text), True, black)
+        text_rect = text.get_rect(center=(self.width/2, self.height/2))
+        screen.blit(text, (text_rect[0] + self.x, text_rect[1]+ self.y))
+
+    def mouseon(self, mouse):
+        if self.x <= mouse[0] <= self.x + self.width and self.y <= mouse[1] <= self.y + self.height:
+            return True
+        return False
+        
+
+
+next_button = Button(screenX-125, screenY-75, 100, 50, blue, "Next Level")
+
 class Level:
     def __init__(self, all_spawn_cord, all_stars_cord, active_graphs, num):
         self.all_spawn_cord = all_spawn_cord
@@ -45,16 +69,16 @@ class Level:
         self.all_stars = []
         for i in self.all_stars_cord:
             self.all_stars.append(Star((i[0], i[1])))
-
-    def set_level(self):
         global dynamic, all_types, run_physics
         dynamic = []
         all_types = []
         run_physics = False
         for i in self.all_spawn_cord:
-            dynamic.append(create_dynamic(i[0], i[1]))
+            dynamic.append(create_dynamic(i[0], i[1]))          # run this outside this lol
         for i in range(len(self.active_graphs)):
             all_types.append(Type(i, random.choice(colors), self.active_graphs[i]))
+
+        
 
 
 
@@ -166,7 +190,7 @@ def draw_line():
 grid = Grid(-15, -10, 15, 10)
 grid.render_grid()    
    
-level1 = Level([(0, 5)], [(0, 3), (0, 2)], ["4"], 1) 
+
 
 menu = True
 protrusion = screenX//4
@@ -257,10 +281,14 @@ all_types = [first]
 drag = False
 point1 = None
 click = 0
+level1 = Level([(0, 5)], [(0, 3), (0, 2)], ["x**2 + 6"], 1) 
+level2 = Level([(5, 5)], [(0, 3), (0, 2)], ["x**2 + 6"], 2) 
 
-all_levels = [level1]
+all_levels = [level1, level2]
 current_level = 1
-level1.set_level()
+level_passed = True
+
+
 
 calc_points()
 play = True
@@ -286,6 +314,9 @@ while play:
                             i.selected = True
                         else:
                             i.selected = False
+            
+            if level_passed and next_button.mouseon(mouse):
+                current_level += 1
 
         if event.type == pygame.MOUSEBUTTONUP:
             if drag:
@@ -313,7 +344,6 @@ while play:
                     run_physics = False
                 else:
                     run_physics = True
-
 
             if menu:
                 for i in all_types:
@@ -366,7 +396,7 @@ while play:
     
 
     if pygame.mouse.get_pressed()[0]:       # PRESS MOUSE
-        if menu and protrusion - 10 <= mouse[0] <= protrusion + 10 and 200 <= mouse[0] <= 500:
+        if menu and protrusion - 20 <= mouse[0] <= protrusion + 20 and 200 <= mouse[0] <= 500:
             protrusion = mouse[0]
         
         if not menu or protrusion + 11 <= mouse[0]: # Drag
@@ -382,6 +412,8 @@ while play:
                 grid.endy += addy
                 
             click+=1
+        
+        
             
 
 
@@ -403,15 +435,24 @@ while play:
     draw_dynamic()
     draw_static()
     Menu()
+    if level_passed:
+        next_button.draw()
     
     for i in all_levels:
-        
         if i.num == current_level:
+            amount_collected = 0
             for j in i.all_stars:
                 j.draw()
                 j.collide()
+                if j.collected:
+                    amount_collected += 1
                 
+                if amount_collected == len(i.all_stars):
+                    level_passed = True
+                else:
+                    level_passed = False
     
     clock.tick(165)
     #print(int(clock.get_fps()))
     pygame.display.update()
+    print(current_level)

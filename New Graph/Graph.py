@@ -33,6 +33,7 @@ interval = 150
 
 font = pygame.font.Font('freesansbold.ttf', 32)
 font1 = pygame.font.Font('freesansbold.ttf', 15)
+win_sound  = pygame.mixer.Sound('win.wav')
 
 all_levels = []
 
@@ -294,7 +295,8 @@ Level([(1, 1)], [(1, 1), (1, 1)], ["x+3"], 2)
 
 
 current_level = 1
-level_passed = True
+
+level_passed = False
 
 
 
@@ -325,6 +327,7 @@ while play:
             
             if level_passed and next_button.mouseon(mouse):
                 current_level += 1
+                level_passed = False
 
         if event.type == pygame.MOUSEBUTTONUP:
             if drag:
@@ -455,12 +458,11 @@ while play:
                 j.collide()
                 if j.collected:
                     amount_collected += 1
-                
-                if amount_collected == len(i.all_stars) or debug:
+                if amount_collected != len(i.all_stars) and level_passed == False:
+                    win_sound.play()
                     level_passed = True
-                else:
-                    level_passed = False
-    
+
+
     clock.tick(165)
     #print(int(clock.get_fps()))
     pygame.display.update()

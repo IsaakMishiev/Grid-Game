@@ -84,6 +84,8 @@ class Grid:
 def calc_points():
     global all_points, static
     all_points = []
+    for i in static:
+        space.remove(i)
     static = []
     steps = grid.max_Lx / interval
 
@@ -93,8 +95,6 @@ def calc_points():
         for x in numpy.arange(all_types[i].i_restriction, all_types[i].f_restriction + 1, steps):
             try:
                 all_points[i].append(Point(x, float(eval(all_types[i].content)), all_types[i].color))
-                
-                static.append(create_static())
             except: 
                 pass
 
@@ -163,7 +163,7 @@ class Type:
 def create_dynamic(x, y):
     body = pymunk.Body(1, 100)
     body.position = (x, y)
-    shape = pymunk.Circle(body, .3, (0, 0))
+    shape = pymunk.Circle(body, .25, (0, 0))
     shape.friction = 0.5
     shape.collision_type = COLLTYPE_BALL
     space.add(body, shape)
@@ -195,7 +195,7 @@ def draw_static1():      # dont draw in final game (just for testing)
         p2y = (static[0].body.position + line.b.rotated(body.angle))[1]
         pygame.draw.line(screen, blue, (p1x, p1y), (p2x, p2y))
     
-    static = []
+
 
 def draw_static():
     global static
@@ -204,17 +204,17 @@ def draw_static():
 
         pv1 = body.position + line.a.rotated(body.angle)
         pv2 = body.position + line.b.rotated(body.angle)
-        p1 = pv1.x, pv1.y
-        p2 = pv2.x, pv2.y
+        p1 = cord_to_pixel(pv1.x, pv1.y)
+        p2 = cord_to_pixel(pv2.x, pv2.y)
         pygame.draw.lines(screen, blue, False, [p1, p2])
 
-    static = []
+
 
 
     
 first = Type(0, red, "x")
 second = Type(1, blue, "tan(x)")
-all_types = [first, second]
+all_types = [first]
 
 
 drag = False

@@ -261,7 +261,7 @@ static = []
 
 def draw_dynamic():
     for ball in dynamic:
-        if -75 > ball.body.position[0] or -100 > ball.body.position[1]:
+        if -25 > ball.body.position[0] or -25 > ball.body.position[1]:
             dynamic.remove(ball)
             soft_fail.play()
         pygame.draw.circle(screen, red, (cord_to_pixel(ball.body.position[0], ball.body.position[1])), 10)

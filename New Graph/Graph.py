@@ -181,6 +181,10 @@ def calc_points():
     
     for i in range(len(all_types)):
         all_points.append([])
+        if all_types[i].i_restriction < grid.startx:
+            all_types[i].i_restriction = grid.startx
+        if all_types[i].f_restriction > grid.endx:
+            all_types[i].f_restriction = grid.endx
         for x in numpy.arange(all_types[i].i_restriction, all_types[i].f_restriction + 1, steps):
             try:
                 all_points[i].append(Point(x, float(eval(all_types[i].content)), all_types[i].color))
@@ -351,7 +355,7 @@ click = 0                                                                       
 level1 = Level([(0, 5)], [(0, 3), (0, 2)], ["x**2"], 1)                         # 1
 level2 = Level([(5, 8)], [(1, 3), (0, 2)], ["x+2"], 2)                          # 1
 level3 = Level([(1, 6)], [(4, 2), (2, 5), (3, 3.5)], ["-1/3*x**2 + 6"], 3)      # 3
-level4 = Level([(10, 10)], [(7, 2), (1, 2), (4, 3), (1, 4)], ["x"], 4)                            # 8     (currently imposible gotta add restrictions) lvl 20 on marble slides
+level4 = Level([(10, 10)], [(7, 2), (3, 3.5), (3, 2), (4.5, 2.9)], ["x"], 4)                            # 8     (currently imposible gotta add restrictions) lvl 20 on marble slides
 level5 = Level([(5, 8)], [(1, 3), (0, 2)], ["x"], 5) 
 
 all_levels = [level1, level2, level3, level4, level5]

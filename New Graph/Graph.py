@@ -1,3 +1,4 @@
+import secrets
 import pygame, sys, numpy, random, pymunk
 from math import *
 from pymunk import Vec2d
@@ -98,9 +99,6 @@ class Level:
                 all_types.append(Type(i, random.choice(colors), self.active_graphs[i]))
 
     
-
-        
-
 
 
 class Star:
@@ -227,6 +225,7 @@ class Type:
         self.content = content
         self.selected = False
         self.boxcolor = black
+        self.cursorpos = protrusion
 
         self.restrions = False
         self.i_restriction = grid.startx
@@ -242,6 +241,11 @@ class Type:
 
         self.text = font.render("y = " + self.content, True, black)
         screen.blit(self.text, (20, self.pos*75 + 20))
+
+    def typeinterface(self):
+            if self.selected:
+                pygame.draw.line(screen, black, (protrusion - 250, 100), (protrusion - 250, 120))
+
 
     def restriction(self):
         if self.r_selected:
@@ -448,13 +452,6 @@ while play:
 
 
     #pygame.mouse.set_cursor(11)          # (7 drag left right)     (9 drag graph)  (3 looking around)    (0 normal mouse)    (11 hand select)
-    
-    for i in all_types:
-        if not i.restrions:
-            i.i_restriction = grid.startx
-            i.f_restriction = grid.endx
-
-
 
     screen.fill(white)
     if run_physics:
@@ -471,6 +468,14 @@ while play:
     if menu:
         reset_button.draw()
         launch_button.draw()
+
+        
+    for i in all_types:
+        if not i.restrions:
+            i.i_restriction = grid.startx
+            i.f_restriction = grid.endx
+            i.typeinterface()
+
     
     for i in all_levels:
         if i.num == current_level:

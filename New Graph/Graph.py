@@ -47,13 +47,15 @@ class Button:
         self.original_color = self.color
         self.outline_color = black
 
+        self.outlight_width = 5
+
     def draw(self):
         if self.greyed:
             self.color = grey
         else:
             self.color = self.original_color
         pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
-        pygame.draw.rect(screen, self.outline_color, (self.x, self.y, self.width, self.height), 5)
+        pygame.draw.rect(screen, self.outline_color, (self.x, self.y, self.width, self.height), self.outlight_width)
 
         font = pygame.font.Font(None, 25)
         text = font.render((self.text), True, black)
@@ -176,7 +178,7 @@ def calc_points():
     global all_points, static
     all_points = []
     steps = grid.max_Lx / interval
-
+    
     for i in range(len(all_types)):
         all_points.append([])
         for x in numpy.arange(all_types[i].i_restriction, all_types[i].f_restriction + 1, steps):
@@ -228,14 +230,20 @@ class Type:
         self.boxcolor = black
         self.cursorpos = protrusion
 
-        self.restrions = False
+        
         self.i_restriction = grid.startx
         self.f_restriction = grid.endx
-        self.r_selected = True
+        self.r_selected = False
 
         self.restrict_button = Button(protrusion-75, self.pos*75+15, 50, 50, light_blue, "{}")      # when drawing just do .draw() for the button
-        self.from_x_button = Button(protrusion+25, self.pos*75+15, 50, 50, light_blue, "< x")
-        self.to_x_button = Button(protrusion+100, self.pos*75+15, 50, 50, light_blue, "> x")
+        self.from_x_button = Button(protrusion+25, self.pos*75+15, 75, 50, light_blue, "")       # text
+        self.to_x_button = Button(protrusion+300, self.pos*75+15, 75, 50, light_blue, "")        # text
+        self.info_button = Button(protrusion+100, self.pos*75+15, 50, 50, light_blue, "< x <")      
+        
+        self.to_selected = False
+        self.from_selected = False
+
+        
 
     def draw(self):
         if self.selected:
@@ -253,19 +261,41 @@ class Type:
 
 
     def restriction(self):
-        self.restrict_button.x = protrusion-75      # updates the x cords
-        self.from_x_button.x = protrusion+25
-        self.to_x_button.x = protrusion+100
+        self.restrict_button.x = protrusion - 75      # updates the x cords
+        self.from_x_button.x = protrusion + 25
+        self.to_x_button.x = protrusion + 155
+        self.info_button.x = protrusion + 102.5
+        
+        self.restrict_button.outlight_width, self.from_x_button.outlight_width, self.to_x_button.outlight_width, self.info_button.outlight_width = 2, 1, 1, 1
 
         self.restrict_button.draw()
         if self.r_selected:
             self.from_x_button.draw()
             self.to_x_button.draw()
+            self.info_button.draw()
             self.restrict_button.outline_color = yellow
         else:
             self.restrict_button.outline_color = black
 
+        if self.to_selected:
+            self.to_x_button.outline_color = yellow
+        else:
+            self.to_x_button.outline_color = black
         
+        if self.from_selected:
+            self.from_x_button.outline_color = yellow
+        else:
+            self.from_x_button.outline_color = black
+
+        try:
+            self.f_restriction = int(self.to_x_button.text)
+        except: 
+            pass
+
+        try:
+            self.i_restriction = int(self.from_x_button.text)
+        except:
+            pass
 
 
     
@@ -321,7 +351,7 @@ click = 0                                                                       
 level1 = Level([(0, 5)], [(0, 3), (0, 2)], ["x**2"], 1)                         # 1
 level2 = Level([(5, 8)], [(1, 3), (0, 2)], ["x+2"], 2)                          # 1
 level3 = Level([(1, 6)], [(4, 2), (2, 5), (3, 3.5)], ["-1/3*x**2 + 6"], 3)      # 3
-level4 = Level([(10, 6)], [(7, 2), (1, 2), (4, 3), (1, 4)], ["x"], 4)                            # 8     (currently imposible gotta add restrictions) lvl 20 on marble slides
+level4 = Level([(10, 10)], [(7, 2), (1, 2), (4, 3), (1, 4)], ["x"], 4)                            # 8     (currently imposible gotta add restrictions) lvl 20 on marble slides
 level5 = Level([(5, 8)], [(1, 3), (0, 2)], ["x"], 5) 
 
 all_levels = [level1, level2, level3, level4, level5]
@@ -347,7 +377,7 @@ while play:
             
             if menu:
                 for i in all_types:
-                    if 0 <= mouse[0] <= protrusion and i.pos*75 <= mouse[1] <= i.pos*75 + 75:
+                    if 0 <= mouse[0] <= protrusion and i.pos*75 <= mouse[1] <= i.pos*75 + 75 and not (i.restrict_button.mouseon(mouse)):
                         if i.selected == False:
                             for j in all_types:
                                 if j.selected == True:
@@ -373,6 +403,20 @@ while play:
                         i.r_selected = False
                     else:
                         i.r_selected = True
+
+                if i.to_x_button.x <= mouse[0] <= i.to_x_button.x + 75 and i.to_x_button.y <= mouse[1] <= i.to_x_button.y + 50:
+                    if i.to_selected:
+                        i.to_selected = False
+                    else:
+                        i.to_selected = True
+                        i.from_selected = False
+
+                if i.from_x_button.x <= mouse[0] <= i.from_x_button.x + 75 and i.from_x_button.y <= mouse[1] <= i.from_x_button.y + 50:
+                    if i.from_selected:
+                        i.from_selected = False
+                    else:
+                        i.from_selected = True
+                        i.to_selected = False
 
         if event.type == pygame.MOUSEBUTTONUP:
             if drag:
@@ -406,34 +450,29 @@ while play:
                 for i in all_types:
                     if i.selected:
                         if event.key == pygame.K_BACKSPACE:
-                            if len(i.content) == 0:
-                                del i
-                            else:
-                                i.content = i.content[:-1]
+                            i.content = i.content[:-1]
                                 
                         elif event.key == pygame.K_RETURN:
                             all_types.append(Type(len(all_types), random.choice(colors), ""))
                         else:
                             i.content += event.unicode
                             calc_points()
-
-
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_RIGHT:
-            grid.startx += .3
-            grid.endx += .3
-            calc_points()
-        if event.key == pygame.K_LEFT:
-            grid.startx += -.3
-            grid.endx += -.3
-            calc_points()
-        if event.key == pygame.K_UP:
-            grid.starty += .3
-            grid.endy += .3
-
-        if event.key == pygame.K_DOWN:
-            grid.starty += -.3
-            grid.endy += -.3
+                    if i.to_selected:
+                        if event.key == pygame.K_BACKSPACE:
+                            i.to_x_button.text = i.to_x_button.text[:-1]
+        
+                        else:
+                            i.to_x_button.text += event.unicode
+                            calc_points()
+                    
+                    if i.from_selected:
+                        if event.key == pygame.K_BACKSPACE:
+                            i.from_x_button.text = i.from_x_button.text[:-1]
+        
+                        else:
+                            i.from_x_button.text += event.unicode
+                            calc_points()
+                    
 
 
     if protrusion - 10 <= mouse[0] <= protrusion + 10:
@@ -483,7 +522,7 @@ while play:
     draw_points()
     draw_line()
     draw_dynamic()
-    draw_static()
+    #draw_static()
     Menu()
     if level_passed:
         next_button.draw()
@@ -494,10 +533,7 @@ while play:
 
         
     for i in all_types:
-        if not i.restrions:
-            i.i_restriction = grid.startx
-            i.f_restriction = grid.endx
-            i.typeinterface()
+        i.typeinterface()
 
     
     for i in all_levels:

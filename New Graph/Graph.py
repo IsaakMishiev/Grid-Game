@@ -1,18 +1,21 @@
-from audioop import add
 import pygame, sys, numpy, random, pymunk
 from math import *
 from pymunk import Vec2d
 from sympy import *
 
+
 pygame.init()
 
-screenY = 680
+debug = True
+
+screenY = 600
 screenX = 1500
 screen = pygame.display.set_mode((screenX, screenY))
 pygame.display.set_caption("Graph")
 space = pymunk.Space()  
-space.gravity = (0, -1)
+space.gravity = (0, -2)
 COLLTYPE_BALL = 2
+run_physics = True
 
 # ======== Colors =========
 red = (255, 0, 0)
@@ -23,19 +26,93 @@ black = (0, 0, 0)
 orange = [255, 99, 71]
 yellow = [255, 255, 0]
 grey = (150, 150, 150)
-colors = [red, blue, green, orange, black, yellow]
+colors = [red, blue, green, orange, black]
 clock = pygame.time.Clock()
 
-interval = 100  # Variable to control graph detail
+interval = 150
 
 font = pygame.font.Font('freesansbold.ttf', 32)
 font1 = pygame.font.Font('freesansbold.ttf', 15)
+win_sound  = pygame.mixer.Sound('win.wav')
+soft_fail  = pygame.mixer.Sound('soft_fail.wav')
 
-def cord_to_pixel(x, y):  # Converts from coordinates to pixels
+all_levels = []
+
+class Button:
+    def __init__(self, x, y, width, height, color, text):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.color = color
+        self.text = text
+
+    def draw(self):
+        pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
+        pygame.draw.rect(screen, black, (self.x, self.y, self.width, self.height), 5)
+
+        font = pygame.font.Font(None, 25)
+        text = font.render((self.text), True, black)
+        text_rect = text.get_rect(center=(self.width/2, self.height/2))
+        screen.blit(text, (text_rect[0] + self.x, text_rect[1]+ self.y))
+
+    def mouseon(self, mouse):
+        if self.x <= mouse[0] <= self.x + self.width and self.y <= mouse[1] <= self.y + self.height:
+            return True
+        return False
+        
+
+
+next_button = Button(screenX-125, screenY-75, 100, 50, blue, "Next Level")
+
+class Level:
+    def __init__(self, all_spawn_cord, all_stars_cord, active_graphs, num):
+        self.all_spawn_cord = all_spawn_cord
+        self.all_stars_cord = all_stars_cord
+        self.num = num
+        self.active_graphs = active_graphs
+        self.all_stars = []
+        for i in self.all_stars_cord:
+            self.all_stars.append(Star((i[0], i[1])))
+        global dynamic, all_types, run_physics
+        dynamic = []
+        all_types = []
+        run_physics = False
+        for i in self.all_spawn_cord:
+            dynamic.append(create_dynamic(i[0], i[1]))          # run this outside this lol
+        for i in range(len(self.active_graphs)):
+            all_types.append(Type(i, random.choice(colors), self.active_graphs[i]))
+        all_levels.append(self)
+
+        
+
+
+
+class Star:
+    def __init__(self, pos):
+        self.pos = pos
+        
+        self.collected = False
+    def draw(self):
+        if not self.collected:
+            self.posc = cord_to_pixel(self.pos[0], self.pos[1])
+            pygame.draw.circle(screen, yellow, (self.posc[0], self.posc[1]), 10)
+    def collide(self):
+        for ball in dynamic:
+            ballx, bally = cord_to_pixel(ball.body.position[0], ball.body.position[1])
+            dist = sqrt((ballx-self.posc[0])**2+(bally-self.posc[1])**2)
+            if dist <= 20:
+                self.collected = True
+
+
+
+def cord_to_pixel(x, y):
     return x * (screenX / grid.max_Lx) + grid.x0, y * -(screenY / grid.max_Ly) + grid.y0
 
-def pixel_to_cord(x, y):  # Converts from pixels to coordinates
+def pixel_to_cord(x, y):
     return (x-grid.x0)/(screenX/ grid.max_Lx), -(y-grid.y0)/(screenY/ grid.max_Ly)
+
+
 
 class Point:
     def __init__(self, x, y, color):
@@ -43,21 +120,21 @@ class Point:
         self.y = y
         self.color = color
 
-    def calc_pos(self):  # caclulates position, given coordinates
+    def calc_pos(self):
         (self.xc, self.yc) = cord_to_pixel(self.x, self.y)
 
-    def draw(self):  # Draws
+    def draw(self):
         pygame.draw.circle(screen, self.color, (self.xc, self.yc), 2)
 
 
-class Grid:  # Grid class
+class Grid:
     def __init__(self, startx, starty, endx, endy):
         self.startx = startx
         self.starty = starty
         self.endx = endx
         self.endy = endy
     
-    def render_grid(self):  # Renders background grid, infinitely 
+    def render_grid(self):
         self.max_Lx = self.endx - self.startx
         self.max_Ly = self.endy - self.starty
         self.x0 = (self.endx + self.startx) * -(screenX / (self.max_Lx * 2)) + screenX/2
@@ -81,43 +158,49 @@ class Grid:  # Grid class
         pygame.draw.line(screen, black, (0, self.y0), (screenX, self.y0), 5)
 
 
-def calc_points():  # 
+def calc_points():
     global all_points, static
     all_points = []
-    static = []
-    steps = grid.max_Lx / interval
 
+    
+
+    steps = grid.max_Lx / interval
 
     for i in range(len(all_types)):
         all_points.append([])
-        for x in numpy.arange(all_types[i].i_restriction, all_types[i].f_restriction + 1, steps):  # Iterates through X values
+        for x in numpy.arange(all_types[i].i_restriction, all_types[i].f_restriction + 1, steps):
             try:
-                all_points[i].append(Point(x, float(eval(all_types[i].content)), all_types[i].color))  # Calculates Y value for given X value, makes full coordinate in all points list
+                all_points[i].append(Point(x, float(eval(all_types[i].content)), all_types[i].color))
             except: 
                 pass
 
-
-def draw_points():  # Draws all points
+    
+def draw_points():
     for i in all_points:
         for j in i:
             j.calc_pos()
             #j.draw()
 
-def draw_line():  # Draws functions (Connects all points of function)
+def draw_line():
+    global static
+    for i in static:
+        space.remove(i)
+    static = []
     for i in all_points:
         for j in range(1, len(i)):
             pygame.draw.line(screen, i[0].color, (i[j].xc, i[j].yc), (i[j-1].xc, i[j-1].yc), 4)
             if j % 2 == 0:
                 static.append(create_static(i[j].x, i[j].y, i[j-1].x, i[j-1].y))
-            
+
 
 grid = Grid(-15, -10, 15, 10)
 grid.render_grid()    
    
 
+
 menu = True
-protrusion = screenX//4  # Overhang amount of menu
-def Menu():  # draws menu
+protrusion = screenX//4
+def Menu():
     if menu == True:
         pygame.draw.rect(screen, white, (0, 0, protrusion, screenY))
         pygame.draw.rect(screen, black, (0, 0, protrusion, screenY), 5)
@@ -153,56 +236,72 @@ class Type:
             pygame.draw.rect(screen, black, (protrusion, self.pos*75, 150, 50), 2)
             pygame.draw.rect(screen, black, (protrusion+150, self.pos*75, 150, 50), 2)
 
+    
 
-def create_dynamic(x, y):  # Makes ball, allows to interact with functions
+def create_dynamic(x, y):
     body = pymunk.Body(1, 100)
     body.position = (x, y)
-    shape = pymunk.Circle(body, .3, (0, 0))
+    shape = pymunk.Circle(body, .35, (0, 0))
     shape.friction = 0.5
     shape.collision_type = COLLTYPE_BALL
-    space.add(body, shape)  # Adds it as an object in space so it can interact with other images
+    space.add(body, shape)
     return shape
 
-def create_static(x1, y1, x2, y2):  # Adds collidable hitbox onto function
+def create_static(x1, y1, x2, y2):
+    
     p1 = Vec2d(x1, y1)
     p2 = Vec2d(x2, y2)
     shape = pymunk.Segment(space.static_body, p1, p2, 0.0)
     space.add(shape)
     return shape
+    
 
-
-dynamic = [create_dynamic(0, 5)]
+dynamic = []
 static = []
 
-def draw_dynamic():  # Draws balls
+def draw_dynamic():
     for ball in dynamic:
+        if -25 > ball.body.position[0] or -25 > ball.body.position[1]:
+            dynamic.remove(ball)
+            soft_fail.play()
         pygame.draw.circle(screen, red, (cord_to_pixel(ball.body.position[0], ball.body.position[1])), 10)
         pygame.draw.circle(screen, black, (cord_to_pixel(ball.body.position[0], ball.body.position[1])), 10, 1)
 
 
-def draw_static():  # Draws lines between points of functions
+
+def draw_static():
     global static
+    
     for line in static:
         body = line.body
-
         pv1 = body.position + line.a.rotated(body.angle)
         pv2 = body.position + line.b.rotated(body.angle)
-        p1 = pv1.x, pv1.y
-        p2 = pv2.x, pv2.y
+        p1 = cord_to_pixel(pv1.x, pv1.y)
+        p2 = cord_to_pixel(pv2.x, pv2.y)
         pygame.draw.lines(screen, blue, False, [p1, p2])
-
-    static = []
-
-
     
+
+
 first = Type(0, red, "x")
-second = Type(1, blue, "cos(x)")
-all_types = [first, second]  # List of all functions that have been inputted
+second = Type(1, blue, "tan(x)")
+all_types = [first]
 
 
 drag = False
 point1 = None
 click = 0
+
+
+
+Level([(0, 5)], [(0, 3), (0, 2)], ["x**2 + 6"], 1) 
+Level([(1, 1)], [(1, 1), (1, 1)], ["x+3"], 2) 
+
+
+
+current_level = 1
+
+level_passed = False
+
 
 
 calc_points()
@@ -229,6 +328,10 @@ while play:
                             i.selected = True
                         else:
                             i.selected = False
+            
+            if level_passed and next_button.mouseon(mouse):
+                current_level += 1
+                level_passed = False
 
         if event.type == pygame.MOUSEBUTTONUP:
             if drag:
@@ -237,26 +340,10 @@ while play:
                 click = 0
 
 
-            
-
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 sys.exit()
-
-            elif event.key == pygame.K_PLUS or event.key == pygame.K_KP_PLUS:
-                if grid.max_Lx > 4 or grid.max_Ly > 4:
-                    grid.startx += 1
-                    grid.starty += 1
-                    grid.endx -= 1
-                    grid.endy -= 1
-                    calc_points()
-            elif event.key == pygame.K_MINUS or event.key == pygame.K_KP_MINUS:
-                grid.startx -= 1
-                grid.starty -= 1
-                grid.endx += 1
-                grid.endy += 1
-                calc_points()
 
             elif event.key == pygame.K_TAB:
                 if menu:
@@ -266,7 +353,12 @@ while play:
 
             elif event.key == pygame.K_1:
                 dynamic.append(create_dynamic(random.randint(0, 7), 5))
-
+            
+            elif event.key == pygame.K_SPACE:
+                if run_physics:
+                    run_physics = False
+                else:
+                    run_physics = True
 
             if menu:
                 for i in all_types:
@@ -276,10 +368,12 @@ while play:
                                 del i
                             else:
                                 i.content = i.content[:-1]
+                                
                         elif event.key == pygame.K_RETURN:
                             all_types.append(Type(len(all_types), random.choice(colors), ""))
                         else:
                             i.content += event.unicode
+                            calc_points()
 
 
     if event.type == pygame.KEYDOWN:
@@ -300,8 +394,6 @@ while play:
             grid.endy += -.3
 
 
-
-
     if protrusion - 10 <= mouse[0] <= protrusion + 10:
         pygame.mouse.set_cursor(7)
 
@@ -316,12 +408,10 @@ while play:
                 pygame.mouse.set_cursor(0)
     else:
         pygame.mouse.set_cursor(3)
-
-
     
 
     if pygame.mouse.get_pressed()[0]:       # PRESS MOUSE
-        if menu and protrusion - 10 <= mouse[0] <= protrusion + 10 and 200 <= mouse[0] <= 500:
+        if menu and protrusion - 20 <= mouse[0] <= protrusion + 20 and 200 <= mouse[0] <= 500:
             protrusion = mouse[0]
         
         if not menu or protrusion + 11 <= mouse[0]: # Drag
@@ -337,6 +427,8 @@ while play:
                 grid.endy += addy
                 
             click+=1
+        
+        
             
 
 
@@ -350,16 +442,32 @@ while play:
 
 
     screen.fill(white)
-    space.step(1/50)
+    if run_physics:
+        space.step(1/50)
     grid.render_grid()
     draw_points()
     draw_line()
     draw_dynamic()
     draw_static()
     Menu()
-    #print(len(static), dynamic[0].body.position)
+
+    if level_passed:
+        next_button.draw()
+    
+    for i in all_levels:
+        if i.num == current_level:
+            amount_collected = 0
+            for j in i.all_stars:
+                j.draw()
+                j.collide()
+                if j.collected:
+                    amount_collected += 1
+                if amount_collected != len(i.all_stars) and level_passed == False:
+                    win_sound.play()
+                    level_passed = True
+
+
     clock.tick(165)
     #print(int(clock.get_fps()))
-
-
     pygame.display.update()
+    

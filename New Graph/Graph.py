@@ -1,3 +1,4 @@
+from re import T
 import pygame, sys, numpy, random, pymunk
 from math import *
 from pymunk import Vec2d
@@ -44,6 +45,7 @@ class Button:
         self.text = text
         self.greyed = False
         self.original_color = self.color
+        self.outline_color = black
 
     def draw(self):
         if self.greyed:
@@ -51,7 +53,7 @@ class Button:
         else:
             self.color = self.original_color
         pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
-        pygame.draw.rect(screen, black, (self.x, self.y, self.width, self.height), 5)
+        pygame.draw.rect(screen, self.outline_color, (self.x, self.y, self.width, self.height), 5)
 
         font = pygame.font.Font(None, 25)
         text = font.render((self.text), True, black)
@@ -231,7 +233,11 @@ class Type:
         self.restrions = False
         self.i_restriction = grid.startx
         self.f_restriction = grid.endx
-        self.r_selected = False
+        self.r_selected = True
+
+        self.restrict_button = Button(protrusion-75, self.pos*75+15, 50, 50, light_blue, "{}")      # when drawing just do .draw() for the button
+        self.from_x_button = Button(protrusion+25, self.pos*75+15, 50, 50, light_blue, "< x")
+        self.to_x_button = Button(protrusion+100, self.pos*75+15, 50, 50, light_blue, "> x")
 
     def draw(self):
         if self.selected:
@@ -244,9 +250,20 @@ class Type:
         screen.blit(self.text, (20, self.pos*75 + 20))
 
     def restriction(self):
+        self.restrict_button.x = protrusion-75      # updates the x cords
+        self.from_x_button.x = protrusion+25
+        self.to_x_button.x = protrusion+100
+
+        self.restrict_button.draw()
         if self.r_selected:
-            pygame.draw.rect(screen, black, (protrusion, self.pos*75, 150, 50), 2)
-            pygame.draw.rect(screen, black, (protrusion+150, self.pos*75, 150, 50), 2)
+            self.from_x_button.draw()
+            self.to_x_button.draw()
+            self.restrict_button.outline_color = yellow
+        else:
+            self.restrict_button.outline_color = black
+
+        
+
 
     
 
@@ -346,6 +363,13 @@ while play:
             if menu and launch_button.mouseon(mouse):
                 run_physics = True
                 launch_button.greyed = True
+
+            for i in all_types:
+                if i.restrict_button.x <= mouse[0] <= i.restrict_button.x + 50 and i.restrict_button.y <= mouse[1] <= i.restrict_button.y + 50:
+                    if i.r_selected:
+                        i.r_selected = False
+                    else:
+                        i.r_selected = True
 
         if event.type == pygame.MOUSEBUTTONUP:
             if drag:
@@ -487,5 +511,5 @@ while play:
                     level_passed = False
     
     clock.tick(165)
-    print(int(clock.get_fps()))
+    #print(int(clock.get_fps()))
     pygame.display.update()

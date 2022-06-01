@@ -233,8 +233,6 @@ class Type:
         self.f_restriction = grid.endx
         self.r_selected = False
 
-        self.restrict_button = Button(protrusion - 50, self.pos*75 + 10, 50, 50, light_blue, "{}")
-
     def draw(self):
         if self.selected:
             self.boxcolor = yellow
@@ -245,7 +243,10 @@ class Type:
         self.text = font.render("y = " + self.content, True, black)
         screen.blit(self.text, (20, self.pos*75 + 20))
 
-    
+    def restriction(self):
+        if self.r_selected:
+            pygame.draw.rect(screen, black, (protrusion, self.pos*75, 150, 50), 2)
+            pygame.draw.rect(screen, black, (protrusion+150, self.pos*75, 150, 50), 2)
 
     
 

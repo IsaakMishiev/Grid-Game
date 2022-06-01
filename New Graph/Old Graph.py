@@ -2,7 +2,6 @@ from audioop import add
 import pygame, sys, numpy, random, pymunk
 from math import *
 
-# HEllo my name is jonny coven I gave mrs fisher a 7/10
 pygame.init()
 
 screenY = 680

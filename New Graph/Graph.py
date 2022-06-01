@@ -26,15 +26,15 @@ grey = (150, 150, 150)
 colors = [red, blue, green, orange, black, yellow]
 clock = pygame.time.Clock()
 
-interval = 200
+interval = 100  # Variable to control graph detail
 
 font = pygame.font.Font('freesansbold.ttf', 32)
 font1 = pygame.font.Font('freesansbold.ttf', 15)
 
-def cord_to_pixel(x, y):
+def cord_to_pixel(x, y):  # Converts from coordinates to pixels
     return x * (screenX / grid.max_Lx) + grid.x0, y * -(screenY / grid.max_Ly) + grid.y0
 
-def pixel_to_cord(x, y):
+def pixel_to_cord(x, y):  # Converts from pixels to coordinates
     return (x-grid.x0)/(screenX/ grid.max_Lx), -(y-grid.y0)/(screenY/ grid.max_Ly)
 
 class Point:
@@ -43,21 +43,21 @@ class Point:
         self.y = y
         self.color = color
 
-    def calc_pos(self):
+    def calc_pos(self):  # caclulates position, given coordinates
         (self.xc, self.yc) = cord_to_pixel(self.x, self.y)
 
-    def draw(self):
+    def draw(self):  # Draws
         pygame.draw.circle(screen, self.color, (self.xc, self.yc), 2)
 
 
-class Grid:
+class Grid:  # Grid class
     def __init__(self, startx, starty, endx, endy):
         self.startx = startx
         self.starty = starty
         self.endx = endx
         self.endy = endy
     
-    def render_grid(self):
+    def render_grid(self):  # Renders background grid, infinitely 
         self.max_Lx = self.endx - self.startx
         self.max_Ly = self.endy - self.starty
         self.x0 = (self.endx + self.startx) * -(screenX / (self.max_Lx * 2)) + screenX/2
@@ -81,7 +81,7 @@ class Grid:
         pygame.draw.line(screen, black, (0, self.y0), (screenX, self.y0), 5)
 
 
-def calc_points():
+def calc_points():  # 
     global all_points, static
     all_points = []
     static = []
@@ -90,24 +90,20 @@ def calc_points():
 
     for i in range(len(all_types)):
         all_points.append([])
-        for x in numpy.arange(all_types[i].i_restriction, all_types[i].f_restriction + 1, steps):
+        for x in numpy.arange(all_types[i].i_restriction, all_types[i].f_restriction + 1, steps):  # Iterates through X values
             try:
-                all_points[i].append(Point(x, float(eval(all_types[i].content)), all_types[i].color))
-                
-                static.append(create_static())
+                all_points[i].append(Point(x, float(eval(all_types[i].content)), all_types[i].color))  # Calculates Y value for given X value, makes full coordinate in all points list
             except: 
                 pass
 
 
-
-
-def draw_points():
+def draw_points():  # Draws all points
     for i in all_points:
         for j in i:
             j.calc_pos()
             #j.draw()
 
-def draw_line():
+def draw_line():  # Draws functions (Connects all points of function)
     for i in all_points:
         for j in range(1, len(i)):
             pygame.draw.line(screen, i[0].color, (i[j].xc, i[j].yc), (i[j-1].xc, i[j-1].yc), 4)
@@ -120,8 +116,8 @@ grid.render_grid()
    
 
 menu = True
-protrusion = screenX//4
-def Menu():
+protrusion = screenX//4  # Overhang amount of menu
+def Menu():  # draws menu
     if menu == True:
         pygame.draw.rect(screen, white, (0, 0, protrusion, screenY))
         pygame.draw.rect(screen, black, (0, 0, protrusion, screenY), 5)
@@ -157,19 +153,17 @@ class Type:
             pygame.draw.rect(screen, black, (protrusion, self.pos*75, 150, 50), 2)
             pygame.draw.rect(screen, black, (protrusion+150, self.pos*75, 150, 50), 2)
 
-        
 
-
-def create_dynamic(x, y):
+def create_dynamic(x, y):  # Makes ball, allows to interact with functions
     body = pymunk.Body(1, 100)
     body.position = (x, y)
     shape = pymunk.Circle(body, .3, (0, 0))
     shape.friction = 0.5
     shape.collision_type = COLLTYPE_BALL
-    space.add(body, shape)
+    space.add(body, shape)  # Adds it as an object in space so it can interact with other images
     return shape
 
-def create_static(x1, y1, x2, y2):
+def create_static(x1, y1, x2, y2):  # Adds collidable hitbox onto function
     p1 = Vec2d(x1, y1)
     p2 = Vec2d(x2, y2)
     shape = pymunk.Segment(space.static_body, p1, p2, 0.0)
@@ -180,24 +174,13 @@ def create_static(x1, y1, x2, y2):
 dynamic = [create_dynamic(0, 5)]
 static = []
 
-def draw_dynamic():
+def draw_dynamic():  # Draws balls
     for ball in dynamic:
         pygame.draw.circle(screen, red, (cord_to_pixel(ball.body.position[0], ball.body.position[1])), 10)
         pygame.draw.circle(screen, black, (cord_to_pixel(ball.body.position[0], ball.body.position[1])), 10, 1)
 
-def draw_static1():      # dont draw in final game (just for testing)
-    global static
-    for line in static:
-        body = line.body
-        p1x = (static[0].body.position + line.a.rotated(body.angle))[0]     # pixel based so input must be pixel
-        p1y = (static[0].body.position + line.a.rotated(body.angle))[1]
-        p2x = (static[0].body.position + line.b.rotated(body.angle))[0]
-        p2y = (static[0].body.position + line.b.rotated(body.angle))[1]
-        pygame.draw.line(screen, blue, (p1x, p1y), (p2x, p2y))
-    
-    static = []
 
-def draw_static():
+def draw_static():  # Draws lines between points of functions
     global static
     for line in static:
         body = line.body
@@ -213,8 +196,8 @@ def draw_static():
 
     
 first = Type(0, red, "x")
-second = Type(1, blue, "tan(x)")
-all_types = [first, second]
+second = Type(1, blue, "cos(x)")
+all_types = [first, second]  # List of all functions that have been inputted
 
 
 drag = False

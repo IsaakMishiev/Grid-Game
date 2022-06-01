@@ -19,6 +19,7 @@ run_physics = True
 red = (255, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 255)
+light_blue = (173, 216, 230)
 white = (255, 255, 255)
 black = (0, 0, 0)
 orange = [255, 99, 71]
@@ -41,8 +42,14 @@ class Button:
         self.height = height
         self.color = color
         self.text = text
+        self.greyed = False
+        self.original_color = self.color
 
     def draw(self):
+        if self.greyed:
+            self.color = grey
+        else:
+            self.color = self.original_color
         pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
         pygame.draw.rect(screen, black, (self.x, self.y, self.width, self.height), 5)
 
@@ -58,7 +65,9 @@ class Button:
         
 
 
-next_button = Button(screenX-125, screenY-75, 100, 50, blue, "Next Level")
+next_button = Button(screenX-125, screenY-75, 100, 50, light_blue, "Next Level")
+reset_button = Button(25, screenY-75, 100, 50, light_blue, "Reset")
+launch_button = Button(150, screenY-75, 100, 50, light_blue, "Launch!")
 
 class Level:
     def __init__(self, all_spawn_cord, all_stars_cord, active_graphs, num):
@@ -67,16 +76,28 @@ class Level:
         self.num = num
         self.active_graphs = active_graphs
         self.all_stars = []
+        
+
+    def set_level(self, reset):        
+        global dynamic, all_types, run_physics
+        for i in dynamic:
+            space.remove(i)
+        dynamic = []
+        self.all_stars = []
+        run_physics = False
+        launch_button.greyed = False
+        
+        for i in self.all_spawn_cord:
+            dynamic.append(create_dynamic(i[0], i[1]))
         for i in self.all_stars_cord:
             self.all_stars.append(Star((i[0], i[1])))
-        global dynamic, all_types, run_physics
-        dynamic = []
-        all_types = []
-        run_physics = False
-        for i in self.all_spawn_cord:
-            dynamic.append(create_dynamic(i[0], i[1]))          # run this outside this lol
-        for i in range(len(self.active_graphs)):
-            all_types.append(Type(i, random.choice(colors), self.active_graphs[i]))
+     
+        if not reset:         
+            all_types = []
+            for i in range(len(self.active_graphs)):
+                all_types.append(Type(i, random.choice(colors), self.active_graphs[i]))
+
+    
 
         
 
@@ -94,7 +115,7 @@ class Star:
     def collide(self):
         for ball in dynamic:
             ballx, bally = cord_to_pixel(ball.body.position[0], ball.body.position[1])
-            dist = sqrt((ballx-self.posc[0])**2+(bally-self.posc[1])**2)
+            dist = sqrt((ballx-self.posc[0])**2+(bally-self.posc[1])**2)        # pythag to find dist
             if dist <= 20:
                 self.collected = True
 
@@ -155,9 +176,6 @@ class Grid:
 def calc_points():
     global all_points, static
     all_points = []
-
-    
-
     steps = grid.max_Lx / interval
 
     for i in range(len(all_types)):
@@ -215,6 +233,8 @@ class Type:
         self.f_restriction = grid.endx
         self.r_selected = False
 
+        self.restrict_button = Button(protrusion - 50, self.pos*75 + 10, 50, 50, light_blue, "{}")
+
     def draw(self):
         if self.selected:
             self.boxcolor = yellow
@@ -225,10 +245,7 @@ class Type:
         self.text = font.render("y = " + self.content, True, black)
         screen.blit(self.text, (20, self.pos*75 + 20))
 
-    def restriction(self):
-        if self.r_selected:
-            pygame.draw.rect(screen, black, (protrusion, self.pos*75, 150, 50), 2)
-            pygame.draw.rect(screen, black, (protrusion+150, self.pos*75, 150, 50), 2)
+    
 
     
 
@@ -236,7 +253,7 @@ def create_dynamic(x, y):
     body = pymunk.Body(1, 100)
     body.position = (x, y)
     shape = pymunk.Circle(body, .35, (0, 0))
-    shape.friction = 0.5
+    shape.friction = 0
     shape.collision_type = COLLTYPE_BALL
     space.add(body, shape)
     return shape
@@ -259,7 +276,6 @@ def draw_dynamic():
         pygame.draw.circle(screen, black, (cord_to_pixel(ball.body.position[0], ball.body.position[1])), 10, 1)
 
 
-
 def draw_static():
     global static
     
@@ -280,14 +296,18 @@ all_types = [first]
 
 drag = False
 point1 = None
-click = 0
-level1 = Level([(0, 5)], [(0, 3), (0, 2)], ["x**2 + 6"], 1) 
-level2 = Level([(5, 5)], [(0, 3), (0, 2)], ["x**2 + 6"], 2) 
+click = 0                                                                       # sample levels (difficulty level 1- 10)
+level1 = Level([(0, 5)], [(0, 3), (0, 2)], ["x**2"], 1)                         # 1
+level2 = Level([(5, 8)], [(1, 3), (0, 2)], ["x+2"], 2)                          # 1
+level3 = Level([(1, 6)], [(4, 2), (2, 5), (3, 3.5)], ["-1/3*x**2 + 6"], 3)      # 3
+level4 = Level([(10, 6)], [(7, 2), (1, 2), (4, 3), (1, 4)], ["x"], 4)                            # 8     (currently imposible gotta add restrictions) lvl 20 on marble slides
+level5 = Level([(5, 8)], [(1, 3), (0, 2)], ["x"], 5) 
 
-all_levels = [level1, level2]
+all_levels = [level1, level2, level3, level4, level5]
 current_level = 1
 level_passed = True
 
+all_levels[0].set_level(False)
 
 
 calc_points()
@@ -317,6 +337,14 @@ while play:
             
             if level_passed and next_button.mouseon(mouse):
                 current_level += 1
+                all_levels[current_level-1].set_level(False)
+            
+            if menu and reset_button.mouseon(mouse):
+                all_levels[current_level-1].set_level(True)
+
+            if menu and launch_button.mouseon(mouse):
+                run_physics = True
+                launch_button.greyed = True
 
         if event.type == pygame.MOUSEBUTTONUP:
             if drag:
@@ -336,14 +364,15 @@ while play:
                 else:
                     menu = True
 
-            elif event.key == pygame.K_1:
-                dynamic.append(create_dynamic(random.randint(0, 7), 5))
+            #elif event.key == pygame.K_1:
+                #dynamic.append(create_dynamic(random.randint(0, 7), 5))
             
             elif event.key == pygame.K_SPACE:
                 if run_physics:
                     run_physics = False
                 else:
                     run_physics = True
+                    
 
             if menu:
                 for i in all_types:
@@ -428,7 +457,7 @@ while play:
 
     screen.fill(white)
     if run_physics:
-        space.step(1/50)
+        space.step(1/25)
     grid.render_grid()
     draw_points()
     draw_line()
@@ -437,6 +466,10 @@ while play:
     Menu()
     if level_passed:
         next_button.draw()
+    
+    if menu:
+        reset_button.draw()
+        launch_button.draw()
     
     for i in all_levels:
         if i.num == current_level:
@@ -453,6 +486,5 @@ while play:
                     level_passed = False
     
     clock.tick(165)
-    #print(int(clock.get_fps()))
+    print(int(clock.get_fps()))
     pygame.display.update()
-    print(current_level)

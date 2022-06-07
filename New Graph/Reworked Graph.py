@@ -122,14 +122,22 @@ class Star:
             if dist <= 20:
                 self.collected = True
 
+
+def thread(function):
+    def fix(*x, **y):
+        threading.Thread(target=function, args=x, kwargs=y).start()
+    return fix
+
+
 class Button:
-    def __init__(self, x, y, width, height, color, text):
+    def __init__(self, x, y, width, height, color, text, glow = False):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.color = color
         self.text = text
+        self.glow = glow
         self.outline_color = black
         self.outline_width = 4
         self.selected = False
@@ -140,6 +148,9 @@ class Button:
 
         if self.selected:
             self.outline_color = yellow
+
+        elif self.glow and self.mouseon(pygame.mouse.get_pos()) == True:
+            self.outline_color = blue
 
         else:
             self.outline_color = black
@@ -438,21 +449,66 @@ all_curves = [curve1]
 all_points = []
 calc_points()
 
+all_levels = []
 
-level1 = Level([(0, 5)], [(0, 3), (0, 2)], [""], 1, "Use gravity to collect all the stars using the ball,/for this level just press launch")                         
-level2 = Level([(5, 8)], [(1, 3), (0, 2)], [""], 2, "Try giding the ball using functions and press launch!")                          
-level3 = Level([(5, 5), (-5, 5)], [(2, 1), (-2, 1)], [""], 3, "When you have a function selected,/press enter to draw a new one")
-level4 = Level([(0, 8)], [(4, -2), (.5, 3), (.8, 2), (1.2, 1.2), (2, .4)], ["(x-2)**2", "x - 6"], 4, "Restrict the parobala to make a ramp")               
-level5 = Level([(5, 5), (-5, 5)], [(2, 1.5), (-2, 1.5), (0, -5)], ["(x-3.1)**2"], 5, "Symmetry")                        
-level6 = Level([(1, 9)], [(4, 0), (6, 1), (8, 2), (10, 3)], [""], 6, "") # another ez line level
-level7 = Level([(5, 8)], [(0, 5), (9, 3.3), (5, 0)], [""], 7, "") 
-level8 = Level([(-8, 8)], [(0, 3), (-8, -4), (0, -6)], [""], 8, "") # donkey kong level
-level9 = Level([(9, 5)], [(7, 2.5), (8, 3), (3, 1.5), (-5, -5)], ["ln(x)"], 9, "") 
-level10 = Level([(10, 10)], [(7, 2), (3, 3.5), (3, 2), (4.5, 2.9)], [""], 10, "") 
-level11 = Level([(-9, 8)], [(-1, 5), (-2, 2), (-9, 1.5)], [""],  11, "")
-level12 = Level([(-9, 8)], [(-1, 5), (-2, 2), (-9, 1.5)], [""],  12, "")
+grade9 = [
+Level([(0, 5)], [(0, 3), (0, 2)], [""], 1, "Use gravity to collect all the stars using the ball,/for this level just press launch"),                         
+Level([(5, 8)], [(1, 3), (0, 2)], [""], 2, "Try giding the ball using functions and press launch!"),                        
+Level([(5, 5), (-5, 5)], [(2, 1), (-2, 1)], [""], 3, "When you have a function selected,/press enter to draw a new one"),
+Level([(0, 8)], [(4, -2), (.5, 3), (.8, 2), (1.2, 1.2), (2, .4)], ["(x-2)**2", "x - 6"], 4, "Restrict the parobala to make a ramp"),            
+Level([(5, 5), (-5, 5)], [(2, 1.5), (-2, 1.5), (0, -5)], ["(x-3.1)**2"], 5, "Symmetry"),                        
+Level([(1, 9)], [(4, 0), (6, 1), (8, 2), (10, 3)], [""], 6, ""), # another ez line level
+Level([(5, 8)], [(0, 5), (9, 3.3), (5, 0)], [""], 7, ""), 
+Level([(-8, 8)], [(0, 3), (-8, -4), (0, -6)], [""], 8, ""), # donkey kong level
+Level([(9, 5)], [(7, 2.5), (8, 3), (3, 1.5), (-5, -5)], ["ln(x)"], 9, ""), 
+Level([(10, 10)], [(7, 2), (3, 3.5), (3, 2), (4.5, 2.9)], [""], 10, ""), 
+Level([(-9, 8)], [(-1, 5), (-2, 2), (-9, 1.5)], [""],  11, ""),
+Level([(-9, 8)], [(-1, 5), (-2, 2), (-9, 1.5)], [""],  12, "")
+]
 
-all_levels = [level1, level2, level3, level4, level5, level6, level7, level8, level9, level10, level11, level12]
+grade10 = [
+]
+
+grade11 = [
+]
+
+grade12 = [
+]
+
+
+
+
+def intro():
+    global all_levels
+    #print((screenX - 700) // 3)
+    buttons = []
+    for i in range(4):
+        buttons.append(Button(200 + 300 * i, 400, 125, 50, light_blue, "Grade " + str(i + 9)))
+
+    selectedGrade = 0
+    while not selectedGrade:
+        mouse = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        screen.fill(white)
+        [x.draw() for x in buttons]
+
+        screen.blit(pygame.font.Font(None, 64).render("Select your preferred difficulty.", True, black), [screenX / 2 - 370, screenY / 2 - 100])
+        clock.tick(60)
+        pygame.display.update()
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            for i in buttons:
+                if i.mouseon(mouse):
+                    selectedGrade = int(i.text.split()[1])
+                    print(selectedGrade)
+                    all_levels = [grade9, grade10, grade11, grade12][selectedGrade - 9]
+                    break
+
+intro()
+
 current_level = 1
 
 level_passed = True

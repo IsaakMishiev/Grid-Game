@@ -1,4 +1,5 @@
 from re import T
+
 import pygame, sys, numpy, random, pymunk
 from math import *
 from pymunk import Vec2d
@@ -181,11 +182,8 @@ def calc_points():
     
     for i in range(len(all_types)):
         all_points.append([])
-        if all_types[i].i_restriction < grid.startx:
-            all_types[i].i_restriction = grid.startx
-        if all_types[i].f_restriction > grid.endx:
-            all_types[i].f_restriction = grid.endx
-        for x in numpy.arange(all_types[i].i_restriction, all_types[i].f_restriction + 1, steps):
+
+        for x in numpy.arange(all_types[i].i_restriction, all_types[i].f_restriction, steps):
             try:
                 all_points[i].append(Point(x, float(eval(all_types[i].content)), all_types[i].color))
             except: 
@@ -217,13 +215,22 @@ grid.render_grid()
 
 menu = True
 protrusion = screenX//4
+v_p = 0
 def Menu():
-    if menu == True:
-        pygame.draw.rect(screen, white, (0, 0, protrusion, screenY))
-        pygame.draw.rect(screen, black, (0, 0, protrusion, screenY), 5)
+    global protrusion, v_p
+    protrusion += v_p
+    pygame.draw.rect(screen, white, (0, 0, protrusion, screenY))
+    pygame.draw.rect(screen, black, (0, 0, protrusion, screenY), 5)
+    if protrusion <= 0 or protrusion == screenX//4: 
+        v_p = 0
+
+    if menu == True and v_p == 0:
         for i in all_types:
             i.draw()
             i.restriction()
+            
+    
+    
 
 class Type:
     def __init__(self, pos, color, content):
@@ -232,7 +239,7 @@ class Type:
         self.content = content
         self.selected = False
         self.boxcolor = black
-        self.cursorpos = protrusion
+        self.index = 0
 
         
         self.i_restriction = grid.startx
@@ -243,6 +250,7 @@ class Type:
         self.from_x_button = Button(protrusion+25, self.pos*75+15, 75, 50, light_blue, "")       # text
         self.to_x_button = Button(protrusion+300, self.pos*75+15, 75, 50, light_blue, "")        # text
         self.info_button = Button(protrusion+100, self.pos*75+15, 50, 50, light_blue, "< x <")      
+        self.restrict_button.outlight_width, self.from_x_button.outlight_width, self.to_x_button.outlight_width, self.info_button.outlight_width = 2, 1, 1, 1
         
         self.to_selected = False
         self.from_selected = False
@@ -252,16 +260,16 @@ class Type:
     def draw(self):
         if self.selected:
             self.boxcolor = yellow
+
+            self.location = font.size(self.content[:self.index])[0]
+
+            pygame.draw.line(screen, black, (self.location+75, self.pos*75+15), (self.location+75, self.pos*75+60))
         else:
             self.boxcolor = black
         pygame.draw.rect(screen, self.boxcolor, (0, self.pos*75, protrusion, 75), 3)
 
         self.text = font.render("y = " + self.content, True, black)
         screen.blit(self.text, (20, self.pos*75 + 20))
-
-    def typeinterface(self):
-            if self.selected:
-                pygame.draw.line(screen, black, (protrusion - 250, 100), (protrusion - 250, 120))
 
 
     def restriction(self):
@@ -270,7 +278,9 @@ class Type:
         self.to_x_button.x = protrusion + 155
         self.info_button.x = protrusion + 102.5
         
-        self.restrict_button.outlight_width, self.from_x_button.outlight_width, self.to_x_button.outlight_width, self.info_button.outlight_width = 2, 1, 1, 1
+        self.i_restriction = grid.startx
+        self.f_restriction = grid.endx
+        
 
         self.restrict_button.draw()
         if self.r_selected:
@@ -352,11 +362,11 @@ all_types = [first]
 drag = False
 point1 = None
 click = 0                                                                       # sample levels (difficulty level 1- 10)
-level1 = Level([(0, 5)], [(0, 3), (0, 2)], ["x**2"], 1)                         # 1
-level2 = Level([(5, 8)], [(1, 3), (0, 2)], ["x+2"], 2)                          # 1
-level3 = Level([(1, 6)], [(4, 2), (2, 5), (3, 3.5)], ["-1/3*x**2 + 6"], 3)      # 3
-level4 = Level([(10, 10)], [(7, 2), (3, 3.5), (3, 2), (4.5, 2.9)], ["x"], 4)                            # 8     (currently imposible gotta add restrictions) lvl 20 on marble slides
-level5 = Level([(5, 8)], [(1, 3), (0, 2)], ["x"], 5) 
+level1 = Level([(0, 5)], [(0, 3), (0, 2)], [""], 1)                         # 1
+level2 = Level([(5, 8)], [(1, 3), (0, 2)], [""], 2)                          # 1
+level3 = Level([(1, 6)], [(4, 2), (2, 5), (3, 3.5)], [""], 3)               # 3
+level4 = Level([(10, 10)], [(7, 2), (3, 3.5), (3, 2), (4.5, 2.9)], [""], 4)                            # 8     (currently imposible gotta add restrictions) lvl 20 on marble slides
+level5 = Level([(5, 8)], [(1, 3), (0, 2)], [""], 5) 
 
 all_levels = [level1, level2, level3, level4, level5]
 current_level = 1
@@ -435,15 +445,36 @@ while play:
                 sys.exit()
 
             elif event.key == pygame.K_TAB:
+                
+
                 if menu:
+                    for i in all_types:
+                        i.selected = False
+                        i.to_selected = False
+                        i.from_selected = False
+                        i.r_selected = False
                     menu = False
+                    v_p = -5
+                    protrusion -= 10
                 else:
                     menu = True
+                    v_p = 5
+            for i in all_types:
+                if i .selected:
+                    if event.key == pygame.K_LEFT:
+                        if i.index != 0:
+                            i.index -= 1
+                        
+                    elif event.key == pygame.K_RIGHT:
+                        if i.index != len(i.content):
+                            i.index += 1
+
+                    
 
             #elif event.key == pygame.K_1:
                 #dynamic.append(create_dynamic(random.randint(0, 7), 5))
             
-            elif event.key == pygame.K_SPACE:
+            if event.key == pygame.K_SPACE:
                 if run_physics:
                     run_physics = False
                 else:
@@ -451,16 +482,23 @@ while play:
                     
 
             if menu:
-                for i in all_types:
+                for i in all_types:                     # TYPING
                     if i.selected:
                         if event.key == pygame.K_BACKSPACE:
-                            i.content = i.content[:-1]
+                            if i.index != 0:
+                                i.content = i.content[:i.index-1] + i.content[i.index:]
+                                i.index -= 1
+                                calc_points()
                                 
                         elif event.key == pygame.K_RETURN:
                             all_types.append(Type(len(all_types), random.choice(colors), ""))
                         else:
-                            i.content += event.unicode
-                            calc_points()
+                            if event.unicode.isalnum() or event.unicode in ("*", "+", "/", "-", "(", ")", "!", "."):
+                                i.content = i.content[:i.index] + event.unicode + i.content[i.index:]
+                                i.index += 1
+                                calc_points()
+
+                            
                     if i.to_selected:
                         if event.key == pygame.K_BACKSPACE:
                             i.to_x_button.text = i.to_x_button.text[:-1]
@@ -496,7 +534,7 @@ while play:
     
 
     if pygame.mouse.get_pressed()[0]:       # PRESS MOUSE
-        if menu and protrusion - 20 <= mouse[0] <= protrusion + 20 and 200 <= mouse[0] <= 500:
+        if menu and protrusion - 20 <= mouse[0] <= protrusion + 20 and 300 <= mouse[0] <= 500:
             protrusion = mouse[0]
         
         if not menu or protrusion + 11 <= mouse[0]: # Drag
@@ -527,17 +565,9 @@ while play:
     draw_line()
     draw_dynamic()
     #draw_static()
-    Menu()
+    
     if level_passed:
         next_button.draw()
-    
-    if menu:
-        reset_button.draw()
-        launch_button.draw()
-
-        
-    for i in all_types:
-        i.typeinterface()
 
     
     for i in all_levels:
@@ -553,7 +583,16 @@ while play:
                     level_passed = True
                 else:
                     level_passed = False
+
+    Menu()
+    if menu:
+        launch_button.x = protrusion - 225
+        reset_button.x = protrusion - 350
+        reset_button.draw()
+        launch_button.draw()
+    
     
     clock.tick(165)
-    #print(int(clock.get_fps()))
+    print(int(clock.get_fps()))
     pygame.display.update()
+    #print(protrusion, menu, v_p)

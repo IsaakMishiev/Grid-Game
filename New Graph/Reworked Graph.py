@@ -1,9 +1,9 @@
 from re import T
-import pygame, sys, numpy, random, pymunk
+import pygame, sys, numpy, random, pymunk, math, time
 from math import *
 from pymunk import Vec2d
 from sympy import *
-
+import threading
 
 pygame.init()
 
@@ -477,9 +477,9 @@ grade12 = [
 
 
 
-
 def intro():
     global all_levels
+    global current_level
     #print((screenX - 700) // 3)
     buttons = []
     for i in range(4):
@@ -487,9 +487,12 @@ def intro():
 
     selectedGrade = 0
     while not selectedGrade:
+
         mouse = pygame.mouse.get_pos()
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+
+            eType = event.type
+            if eType == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
         screen.fill(white)
@@ -499,7 +502,7 @@ def intro():
         clock.tick(60)
         pygame.display.update()
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if eType == pygame.MOUSEBUTTONDOWN:
             for i in buttons:
                 if i.mouseon(mouse):
                     selectedGrade = int(i.text.split()[1])
@@ -507,9 +510,43 @@ def intro():
                     all_levels = [grade9, grade10, grade11, grade12][selectedGrade - 9]
                     break
 
+    eType = None
+    buttons = []
+    row1 = [9 if len(all_levels) > 9 else len(all_levels)][0]
+    print(row1)
+    for i in range(row1):
+        buttons.append(Button(50 + 150 * i, 300, 125, 50, light_blue, str(i+1)))
+
+
+    if row1 >= 9:
+        row2 = len(all_levels) - row1
+        for i in range(row2):
+            buttons.append(Button(50 + 150 * i, 400, 125, 50, light_blue, str(i+10)))
+
+    selectedLevel = -1
+    while selectedLevel < 0:
+        mouse = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            screen.fill(white)
+            [x.draw() for x in buttons]
+
+            screen.blit(pygame.font.Font(None, 64).render("Select your level.", True, black), [screenX / 2 - 250, screenY / 2 - 100])
+            clock.tick(60)
+            pygame.display.update()
+            time.sleep(0.1)
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                for i in buttons:
+                    if i.mouseon(mouse):
+                        selectedLevel = int(i.text)
+                        print(selectedLevel)
+                        current_level = selectedLevel-1
+                        break
 intro()
 
-current_level = 1
 
 level_passed = True
 

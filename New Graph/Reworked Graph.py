@@ -276,6 +276,7 @@ class Menu:
         self.interval_type = Type(screenX/2-100, screenY//2+75, 200, 50, light_blue, "Interval: ")
         self.pause_text = Button(screenX//2-50, -screenY//4+screenY//2+15, 100, 50, light_blue, "Pause")
         self.close_settings = Button(screenX//2-screenX//4+screenX//2-50, -screenY//4+screenY//2+15, 35, 35, light_blue, "X")
+        self.change_level = Button(screenX//2-screenX//4+screenX//2-700, -screenY//4+screenY//2+100, 200, 50, light_blue, "Change Level")
         self.interval_type.content = "150"
 
 
@@ -322,6 +323,7 @@ class Menu:
             pygame.draw.rect(screen, black, (screenX//2-screenX//4, screenY//2-screenY//4, screenX//2, screenY//2), 5)
             self.interval_type.draw()
             self.close_settings.draw()
+            self.change_level.draw()
             self.pause_text.draw()
 
     
@@ -484,7 +486,7 @@ def intro():
     buttons = []
     for i in range(4):
         buttons.append(Button(200 + 300 * i, 400, 125, 50, light_blue, "Grade " + str(i + 9)))
-
+    eType = []
     selectedGrade = 0
     while not selectedGrade:
 
@@ -545,6 +547,7 @@ def intro():
                         print(selectedLevel)
                         current_level = selectedLevel-1
                         break
+    print(all_levels)
 intro()
 
 
@@ -593,6 +596,11 @@ while True:
             if menu.pause and menu.close_settings.mouseon(mouse):
                 menu.pause = False
                 menu.menu = True
+
+            if menu.pause and menu.change_level.mouseon(mouse):
+                menu.pause = False
+                menu.menu = True
+                intro()
 
             if menu.pause and menu.interval_type.mouseon(mouse):
                 if not menu.interval_type.selected:

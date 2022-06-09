@@ -1,9 +1,9 @@
 from re import T
-import pygame, sys, numpy, random, pymunk, math, time
+import pygame, sys, numpy, random, pymunk, time
 from math import *
 from pymunk import Vec2d
 from sympy import *
-import threading
+
 
 pygame.init()
 
@@ -67,7 +67,7 @@ class Typewriter:
             text_rect = text.get_rect(center=(self.width/2, self.height/2))
             screen.blit(text, (text_rect[0] + self.x, text_rect[1] + self.y + num*font1.size(i)[1]-10))
 
-        
+
 
 class Level:
     def __init__(self, all_spawn_cord, all_stars_cord, active_graphs, num, text):
@@ -77,7 +77,7 @@ class Level:
         self.active_graphs = active_graphs
         self.all_stars = []
         self.text = text
-        
+
 
     def set_level(self, reset):        
         global dynamic, all_curves, run_physics
@@ -87,7 +87,7 @@ class Level:
         self.all_stars = []
         run_physics = False
         menu.launch_button.greyed = False
-        
+
         for i in self.all_spawn_cord:
             dynamic.append(create_dynamic(i[0], i[1]))
         for i in self.all_stars_cord:
@@ -108,7 +108,7 @@ class Level:
 class Star:
     def __init__(self, pos):
         self.pos = pos
-        
+
         self.collected = False
     def draw(self):
         if not self.collected:
@@ -122,22 +122,14 @@ class Star:
             if dist <= 20:
                 self.collected = True
 
-
-def thread(function):
-    def fix(*x, **y):
-        threading.Thread(target=function, args=x, kwargs=y).start()
-    return fix
-
-
 class Button:
-    def __init__(self, x, y, width, height, color, text, glow = False):
+    def __init__(self, x, y, width, height, color, text):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.color = color
         self.text = text
-        self.glow = glow
         self.outline_color = black
         self.outline_width = 4
         self.selected = False
@@ -148,9 +140,6 @@ class Button:
 
         if self.selected:
             self.outline_color = yellow
-
-        elif self.glow and self.mouseon(pygame.mouse.get_pos()) == True:
-            self.outline_color = blue
 
         else:
             self.outline_color = black
@@ -166,7 +155,7 @@ class Button:
         pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
         pygame.draw.rect(screen, self.outline_color, (self.x, self.y, self.width, self.height), self.outline_width)
 
-        
+
         text = font.render((self.text), True, black)
         text_rect = text.get_rect(center=(self.width/2, self.height/2))
         screen.blit(text, (text_rect[0] + self.x, text_rect[1]+ self.y))
@@ -237,7 +226,7 @@ class Type:
 
         if self.selected:
             self.outline_color = yellow
-            
+
         else:
             self.outline_color = black
         if self.shadow:
@@ -248,8 +237,8 @@ class Type:
         if self.selected:
             self.location = font.size(self.content[:self.index])[0] + self.x + font.size(self.start_text)[0]
             pygame.draw.line(screen, black, (self.location+self.width//20, self.y+self.height//4), (self.location+self.width//20, self.y + self.height - self.height//4))
-        
-        
+
+
         self.text = font.render(self.start_text + self.content, True, black)
         screen.blit(self.text, (self.x+self.width//20, self.y+self.height//3))
 
@@ -258,7 +247,7 @@ class Type:
             return True
         return False
 
-        
+
 class Menu:
     def __init__(self):
         self.menu = True
@@ -276,13 +265,14 @@ class Menu:
         self.interval_type = Type(screenX/2-100, screenY//2+75, 200, 50, light_blue, "Interval: ")
         self.pause_text = Button(screenX//2-50, -screenY//4+screenY//2+15, 100, 50, light_blue, "Pause")
         self.close_settings = Button(screenX//2-screenX//4+screenX//2-50, -screenY//4+screenY//2+15, 35, 35, light_blue, "X")
+        
         self.change_level = Button(screenX//2-screenX//4+screenX//2-700, -screenY//4+screenY//2+100, 200, 50, light_blue, "Change Level")
         self.interval_type.content = "150"
 
 
     def draw(self):
         global interval
-        
+
         self.protrusion += self.v_p
 
         self.reset_button.x = self.protrusion-300
@@ -295,14 +285,14 @@ class Menu:
         pygame.draw.rect(screen, grey, (7, 7, self.protrusion, screenY))
         pygame.draw.rect(screen, white, (0, 0, self.protrusion, screenY))
         pygame.draw.rect(screen, black, (0, 0, self.protrusion, screenY), 5)
-        
+
         if self.menu:
             self.launch_button.draw()
             self.reset_button.draw()
             self.settings_button.draw()
             for i in all_curves:
                 i.draw()
-            
+
             self.close_menu.draw()
         else:
             self.open_menu.draw()
@@ -311,7 +301,7 @@ class Menu:
             self.v_p = 0
 
 
-        
+
         if self.pause:
             self.menu = False
             try:
@@ -326,7 +316,7 @@ class Menu:
             self.change_level.draw()
             self.pause_text.draw()
 
-    
+
 
 
 
@@ -347,7 +337,7 @@ class Curve:
         self.f_restriction = grid.endx
 
     def draw(self):
-        
+
         self.type.width = menu.protrusion-10
         self.restriction_button.x = menu.protrusion-70
 
@@ -366,7 +356,7 @@ class Curve:
             self.f_restriction = int(self.to_restriction.content)
         except: self.f_restriction = grid.endx
 
-        
+
 
 def create_dynamic(x, y):
     body = pymunk.Body(1, 100)
@@ -383,7 +373,7 @@ def create_static(x1, y1, x2, y2):
     shape = pymunk.Segment(space.static_body, p1, p2, 0.0)
     space.add(shape)
     return shape
-    
+
 
 dynamic = []
 static = []
@@ -412,7 +402,7 @@ def draw_line():
     for i in static:
         space.remove(i)
     static = []
-    
+
     for i in all_points:
         color = all_curves[all_points.index(i)].color
         for j in range(1, len(i)):
@@ -429,11 +419,11 @@ def typing_register(event, typer, restrict):
     elif event.key == pygame.K_LEFT:
         if typer.index != 0:
             typer.index -= 1
-    
+
     elif event.key == pygame.K_RIGHT:
         if typer.index != len(typer.content):
             typer.index += 1
-    
+
     else:
         if event.unicode.isalnum() or event.unicode in ("*", "+", "/", "-", "(", ")", "!", ".", " "):
             if typer.index != restrict:
@@ -451,7 +441,6 @@ all_curves = [curve1]
 all_points = []
 calc_points()
 
-all_levels = []
 
 grade9 = [
 Level([(0, 5)], [(0, 3), (0, 2)], [""], 1, "Use gravity to collect all the stars using the ball,/for this level just press launch"),                         
@@ -477,6 +466,7 @@ grade11 = [
 grade12 = [
 ]
 
+all_levels = grade9
 
 
 def intro():
@@ -545,11 +535,12 @@ def intro():
                     if i.mouseon(mouse):
                         selectedLevel = int(i.text)
                         print(selectedLevel)
-                        current_level = selectedLevel-1
+                        current_level = selectedLevel
+                        all_levels[current_level-1].set_level(False)
                         break
-    print(all_levels)
 intro()
 
+current_level = 1
 
 level_passed = True
 
@@ -568,7 +559,7 @@ while True:
                 all_curves, all_points = [], []
                 current_level += 1
                 all_levels[current_level-1].set_level(False)
-            
+
             if menu.menu and menu.reset_button.mouseon(mouse):
                 all_levels[current_level-1].set_level(True)
 
@@ -593,14 +584,15 @@ while True:
                         i.restriction_button.selected = False
                         i.type.selected = False
 
-            if menu.pause and menu.close_settings.mouseon(mouse):
-                menu.pause = False
-                menu.menu = True
-
             if menu.pause and menu.change_level.mouseon(mouse):
                 menu.pause = False
                 menu.menu = True
                 intro()
+                break
+
+            if menu.pause and menu.close_settings.mouseon(mouse):
+                menu.pause = False
+                menu.menu = True
 
             if menu.pause and menu.interval_type.mouseon(mouse):
                 if not menu.interval_type.selected:
@@ -625,13 +617,13 @@ while True:
                             if j != i:
                                 j.restriction_button.selected = False       # unselects everything
                                 j.type.selected = False
-                                
+
 
                 elif i.restriction_button.mouseon(mouse): 
                     if i.restriction_button.selected:
 
                         i.restriction_button.selected = False
-                        
+
                     else:
                         i.restriction_button.selected = True
                         i.to_restriction.selected = False
@@ -642,7 +634,7 @@ while True:
                             if j != i:
                                 j.restriction_button.selected = False       # unselects everything
                                 j.type.selected = False
-                
+
                 if i.restriction_button.selected:
                     if i.to_restriction.mouseon(mouse):
                         if i.to_restriction.selected:
@@ -651,7 +643,7 @@ while True:
                             i.to_restriction.selected = True
                             i.type.selected = False
                             i.from_restriction.selected = False
-                            
+
                             for j in all_curves:
                                 if j != i:
                                     j.restriction_button.selected = False       # unselects everything
@@ -664,7 +656,7 @@ while True:
                             i.from_restriction.selected = True
                             i.type.selected = False
                             i.to_restriction.selected = False
-                            
+
                             for j in all_curves:
                                 if j != i:
                                     j.restriction_button.selected = False       # unselects everything
@@ -723,7 +715,7 @@ while True:
                 sys.exit()
 
 
-        
+
 
     screen.fill(white)
     grid.draw()
@@ -732,8 +724,8 @@ while True:
             j.calc_pos()
     draw_line()
     draw_dynamic()
-    
-    
+
+
     def drag():    
         global click
         if pygame.mouse.get_pressed()[0]:   
@@ -747,7 +739,7 @@ while True:
                 grid.endx -= addx
                 grid.starty += addy
                 grid.endy += addy
-                
+
             click+=1
 
     for i in all_levels:
@@ -758,13 +750,13 @@ while True:
                 j.collide()
                 if j.collected:
                     amount_collected += 1
-                
+
                 if amount_collected == len(i.all_stars):
                     level_passed = True
                 else:
                     level_passed = False
 
-    
+
 
     if mouse[0] <= menu.protrusion - 11 and menu:
         for i in all_curves:
@@ -785,12 +777,12 @@ while True:
 
     if level_passed:
         menu.next_button.draw()
-    
+
     fps = int(clock.get_fps())
 
     if run_physics:
         space.step(1/25)
-    
+
     for i in all_levels:
         if i.num == current_level:
             if i.text != "":
@@ -799,4 +791,4 @@ while True:
     menu.draw()
 
     clock.tick(60)
-    pygame.display.update()
+    pygame.display.update() 

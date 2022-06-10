@@ -77,10 +77,12 @@ class Level:
         self.active_graphs = active_graphs
         self.all_stars = []
         self.text = text
+        self.new_text = Typewriter(screenX-425, 25, 400, 75, self.text, white)
 
 
     def set_level(self, reset):        
         global dynamic, all_curves, run_physics
+        calc_points()
         for i in dynamic:
             space.remove(i)
         dynamic = []
@@ -93,7 +95,7 @@ class Level:
         for i in self.all_stars_cord:
             self.all_stars.append(Star((i[0], i[1])))
 
-        self.new_text = Typewriter(screenX-425, 25, 400, 75, self.text, white)
+        
         self.new_text.draw()
 
         if not reset:         
@@ -461,13 +463,21 @@ grade10 = [
 ]
 
 grade11 = [
+Level([(8,3.9)],[(2,2),(0.5,1)],["x"],1,"test"), # sqrt(x)
+Level([(6,5.7)],[(3,4),(2,3.3),(0.45,1.8)],["x"],2,"test"), # sqrt(x)*2
+Level([(-3,6.5)],[(-2,3.3),(-1,1.3), (2,-1), (4, -2)],["x**2 / 2"],3,"test"), # y=x^2 restriction at x=0
+Level([(8,5)],[(6,4.2),(4,3.5),(2,2.2),(1,0.7),(-1,-2)],["log(x)*2"],4,"test"), # log(x)*2
+Level([(5,6)],[(4,4),(3,2.2),(2,1.2),(1,0.8),(-1,0.4),(-3,-0.2)],["x**3 / 25"],5,"test"), # x**3 / 25
+Level([(0.8,9)],[(1,2),(2,1),(4,0.5),(6,0.4),(8,0.3)],["1/x"],6,"test"), # 1/x * 5
+Level([(-5,6)],[(1,2),(2,1),(4,0.5),(6,0.4),(8,0.3)],["5**2 + 5**2 = r**2"],7,"test") # 1/x * 5
 ]
 
 grade12 = [
 ]
 
-all_levels = grade9
+all_levels = grade11
 
+current_level = 7
 
 def intro():
     global all_levels
@@ -538,13 +548,12 @@ def intro():
                         current_level = selectedLevel
                         all_levels[current_level-1].set_level(False)
                         break
-intro()
-
-current_level = 1
-
-level_passed = True
+#intro()
 
 all_levels[current_level-1].set_level(False)
+level_passed = True
+
+
 
 while True:
     mouse = pygame.mouse.get_pos()
@@ -791,4 +800,4 @@ while True:
     menu.draw()
 
     clock.tick(60)
-    pygame.display.update() 
+    pygame.display.update()

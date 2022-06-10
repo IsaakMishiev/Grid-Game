@@ -475,9 +475,7 @@ Level([(-5,6)],[(1,2),(2,1),(4,0.5),(6,0.4),(8,0.3)],["5**2 + 5**2 = r**2"],7,""
 grade12 = [
 ]
 
-all_levels = grade11
 
-current_level = 7
 
 def intro():
     global all_levels
@@ -548,7 +546,7 @@ def intro():
                         current_level = selectedLevel
                         all_levels[current_level-1].set_level(False)
                         break
-#intro()
+intro()
 
 all_levels[current_level-1].set_level(False)
 level_passed = True

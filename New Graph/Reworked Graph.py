@@ -15,7 +15,6 @@ space = pymunk.Space()
 space.gravity = (0, -1)
 COLLTYPE_BALL = 2
 run_physics = False
-
 # ======== Colors =========
 red = (255, 0, 0)
 green = (0, 255, 0)
@@ -31,6 +30,9 @@ clock = pygame.time.Clock()
 
 font = pygame.font.Font(None, 38)
 font1 = pygame.font.Font('freesansbold.ttf', 15)
+win = pygame.mixer.Sound('win.wav')
+lose = pygame.mixer.Sound('soft_fail.wav')
+clicks = pygame.mixer.Sound('click.wav')
 click = 0
 interval = 150
 
@@ -460,6 +462,12 @@ Level([(-9, 8)], [(-1, 5), (-2, 2), (-9, 1.5)], [""],  12, "")
 ]
 
 grade10 = [
+Level([(9,15)],[(3,8.5),(7,12.5),(-2,3.5),(-4,1.5)], ["x + 5"],1,""), # x + 5
+Level([(3.5,15)],[(2.5,8.5),(4,12.5),(-2,3.5),(-4,1.5)], [""],2,""), # x*3
+Level([(5,15.5)],[(2.5,8.5),(4,13),(0,0.5)], [""],3,""), # x*3
+Level([(1.7,2.5)],[(5.5,-0.7),(3,0.6),(4,-0.7),(4.7,-1.6)], ["sin(x) * 2"],4,""), # x*3
+Level([(0.3,2.5)],[(4,-0.7),(1.5,0.6),(2.5,-0.7),(3.2,-1.6)], ["cos(x) * 2"],5,""), # x*3
+Level([(1.7,8)],[(1.5,6),(1,3),(0,0.5),(-1,-1.6)], ["sinh(x) * 2"],6,"") # x*3
 ]
 
 grade11 = [
@@ -469,10 +477,15 @@ Level([(-3,6.5)],[(-2,3.3),(-1,1.3), (2,-1), (4, -2)],["x**2 / 2"],3,"Try thinki
 Level([(8,5)],[(6,4.2),(4,3.5),(2,2.2),(1,0.7),(-1,-2)],["log(x)*2"],4,""), # log(x)*2
 Level([(5,6)],[(4,4),(3,2.2),(2,1.2),(1,0.8),(-1,0.4),(-3,-0.2)],["x**3 / 25"],5,"The simplest solution is usually the best."), # x**3 / 25
 Level([(0.8,9)],[(1,2),(2,1),(4,0.5),(6,0.4),(8,0.3)],["1/x"],6,""), # 1/x * 5
-Level([(-5,6)],[(1,2),(2,1),(4,0.5),(6,0.4),(8,0.3)],["5**2 + 5**2 = r**2"],7,"") # 1/x * 5
 ]
 
 grade12 = [
+Level([(3.8,18)],[(3,10),(2,5.5),(1,2.5),(0,1.5)],["2**x"],1,""),
+Level([(-2.9,13)],[(-2,5.7),(-1,2.2),(0,1.5),(1,2.3)],["cosh(x)"],2,""),
+Level([(7,4.7)],[(4,3.5),(3,2.6),(2,2),(1,0.5)],["log(x**2)"],3,""),
+Level([(0.5,1.5)],[(1,-0.5),(3,-1.5),(6,-2.6),(9,-2.8)],["-ln(e*x)"],4,""),
+Level([(4,10.5)],[(3,6.5),(2,3.5),(1,2.3),(0,1.5),(-3,0.55)],["sqrt(3**x)"],5,""),
+Level([(0.8,3)],[(0,1.2),(-0.5,0),(-1,-1.8),(-2,-2.5),(-4,-2.5),(-6,-2.5)],["erf(x)*3"],6,"")
 ]
 
 
@@ -505,15 +518,14 @@ def intro():
         if eType == pygame.MOUSEBUTTONDOWN:
             for i in buttons:
                 if i.mouseon(mouse):
+                    clicks.play()
                     selectedGrade = int(i.text.split()[1])
-                    print(selectedGrade)
                     all_levels = [grade9, grade10, grade11, grade12][selectedGrade - 9]
                     break
 
     eType = None
     buttons = []
     row1 = [9 if len(all_levels) > 9 else len(all_levels)][0]
-    print(row1)
     for i in range(row1):
         buttons.append(Button(50 + 150 * i, 300, 125, 50, light_blue, str(i+1)))
 
@@ -541,8 +553,8 @@ def intro():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 for i in buttons:
                     if i.mouseon(mouse):
+                        clicks.play()
                         selectedLevel = int(i.text)
-                        print(selectedLevel)
                         current_level = selectedLevel
                         all_levels[current_level-1].set_level(False)
                         break
@@ -566,11 +578,14 @@ while True:
                 all_curves, all_points = [], []
                 current_level += 1
                 all_levels[current_level-1].set_level(False)
+                win.play()
 
             if menu.menu and menu.reset_button.mouseon(mouse):
+                lose.play()
                 all_levels[current_level-1].set_level(True)
 
             if menu.menu and menu.launch_button.mouseon(mouse):
+                clicks.play()
                 for i in all_curves:
                     i.type.selected = False
                     i.restriction_button.selected = False
@@ -578,6 +593,7 @@ while True:
                 menu.launch_button.greyed = True
 
             if menu.menu and menu.close_menu.mouseon(mouse):
+                clicks.play()
                 menu.v_p = - 5
                 menu.menu = False
                 for i in all_curves:
@@ -585,6 +601,7 @@ while True:
                     i.type.selected = False
 
             if menu.menu and menu.settings_button.mouseon(mouse):
+                clicks.play()
                 menu.pause = True
                 run_physics = False
                 for i in all_curves:
@@ -592,16 +609,19 @@ while True:
                         i.type.selected = False
 
             if menu.pause and menu.change_level.mouseon(mouse):
+                clicks.play()
                 menu.pause = False
                 menu.menu = True
                 intro()
                 break
 
             if menu.pause and menu.close_settings.mouseon(mouse):
+                clicks.play()
                 menu.pause = False
                 menu.menu = True
 
             if menu.pause and menu.interval_type.mouseon(mouse):
+                clicks.play()
                 if not menu.interval_type.selected:
                     menu.interval_type.selected = True
                 else:

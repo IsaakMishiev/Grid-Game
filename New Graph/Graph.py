@@ -249,8 +249,8 @@ class Type:
         self.restrict_button = Button(protrusion-75, self.pos*75+15, 50, 50, light_blue, "{}")      # when drawing just do .draw() for the button
         self.from_x_button = Button(protrusion+25, self.pos*75+15, 75, 50, light_blue, "")       # text
         self.to_x_button = Button(protrusion+300, self.pos*75+15, 75, 50, light_blue, "")        # text
-        self.info_button = Button(protrusion+100, self.pos*75+15, 50, 50, light_blue, "< x <")      
-        self.restrict_button.outlight_width, self.from_x_button.outlight_width, self.to_x_button.outlight_width, self.info_button.outlight_width = 2, 1, 1, 1
+        self.info_button = Button(protrusion+750, self.pos*75+15, 50, 5 > 750, li100t_blue, "< x <")      
+  > 100       self.re[]outlight_width, self.to_x_button.outlight_width, self.info_button.outlight_width = 2, 1, 1, 1
         
         self.to_selected = False
         self.from_selected = False

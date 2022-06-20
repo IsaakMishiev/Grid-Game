@@ -2,7 +2,6 @@ from re import T
 import pygame, sys, numpy, random, pymunk, time
 from math import *
 from pymunk import Vec2d
-from sympy import *
 
 
 pygame.init()
@@ -408,7 +407,10 @@ def draw_line():
     static = []
 
     for i in all_points:
-        color = all_curves[all_points.index(i)].color
+        try:
+            color = all_curves[all_points.index(i)].color
+        except:
+            pass
         for j in range(1, len(i)):
             pygame.draw.line(screen, color, (i[j].xc, i[j].yc), (i[j-1].xc, i[j-1].yc), 4)
             static.append(create_static(i[j].x, i[j].y, i[j-1].x, i[j-1].y))
@@ -453,20 +455,19 @@ Level([(5, 5), (-5, 5)], [(2, 1), (-2, 1)], [""], 3, "When you have a function s
 Level([(0, 8)], [(4, -2), (.5, 3), (.8, 2), (1.2, 1.2), (2, .4)], ["(x-2)**2", "x - 6"], 4, "Restrict the parobala to make a ramp"),            
 Level([(5, 5), (-5, 5)], [(2, 1.5), (-2, 1.5), (0, -5)], ["(x-3.1)**2"], 5, "Symmetry"),                        
 Level([(1, 9)], [(4, 0), (6, 1), (8, 2), (10, 3)], [""], 6, ""), # another ez line level
-Level([(5, 8)], [(0, 5), (9, 3.3), (5, 0)], [""], 7, ""), 
-Level([(-8, 8)], [(0, 3), (-8, -4), (0, -6)], [""], 8, ""), # donkey kong level
+Level([(5, 8)], [(0, 5), (9, 3.3), (5, 0)], [""], 7, "Problems are not stop signs, they are guidelines"), 
+Level([(-8, 8)], [(0, 3), (-8, -4), (0, -6)], [""], 8, "Donkey Kong"), # donkey kong level
 Level([(9, 5)], [(7, 2.5), (8, 3), (3, 1.5), (-5, -5)], ["ln(x)"], 9, ""), 
-Level([(10, 10)], [(7, 2), (3, 3.5), (3, 2), (4.5, 2.9)], [""], 10, ""), 
-Level([(-9, 8)], [(-1, 5), (-2, 2), (-9, 1.5)], [""],  11, ""),
-Level([(-9, 8)], [(-1, 5), (-2, 2), (-9, 1.5)], [""],  12, "")
+Level([(10, 10)], [(7, 2), (3, 3.5), (3, 2), (4.5, 2.9)], [""], 10, "It always seems impossible until it's done"), 
+Level([(-9, 8)], [(-1, 5), (-2, 2), (-9, 1.5)], [""],  11, "Never trust a man who doesn't like cats")
 ]
 
 grade10 = [
 Level([(9,15)],[(3,8.5),(7,12.5),(-2,3.5),(-4,1.5)], ["x + 5"],1,""), # x + 5
-Level([(3.5,15)],[(2.5,8.5),(4,12.5),(-2,3.5),(-4,1.5)], [""],2,""), # x*3
+Level([(3.5,15)],[(2.5,8.5),(4,12.5),(-2,3.5),(-4,1.5)], [""],2,"you miss 100 percent of the shots u dont take"), # x*3
 Level([(5,15.5)],[(2.5,8.5),(4,13),(0,0.5)], [""],3,""), # x*3
 Level([(1.7,2.5)],[(5.5,-0.7),(3,0.6),(4,-0.7),(4.7,-1.6)], ["sin(x) * 2"],4,""), # x*3
-Level([(0.3,2.5)],[(4,-0.7),(1.5,0.6),(2.5,-0.7),(3.2,-1.6)], ["cos(x) * 2"],5,""), # x*3
+Level([(0.3,2.5)],[(4,-0.7),(1.5,0.6),(2.5,-0.7),(3.2,-1.6)], ["cos(x) * 2"],5,"The harder you fall the higher you bounce"), # x*3
 Level([(1.7,8)],[(1.5,6),(1,3),(0,0.5),(-1,-1.6)], ["sinh(x) * 2"],6,"") # x*3
 ]
 
@@ -480,20 +481,18 @@ Level([(0.8,9)],[(1,2),(2,1),(4,0.5),(6,0.4),(8,0.3)],["1/x"],6,""), # 1/x * 5
 ]
 
 grade12 = [
-Level([(3.8,18)],[(3,10),(2,5.5),(1,2.5),(0,1.5)],["2**x"],1,""),
-Level([(-2.9,13)],[(-2,5.7),(-1,2.2),(0,1.5),(1,2.3)],["cosh(x)"],2,""),
-Level([(7,4.7)],[(4,3.5),(3,2.6),(2,2),(1,0.5)],["log(x**2)"],3,""),
-Level([(0.5,1.5)],[(1,-0.5),(3,-1.5),(6,-2.6),(9,-2.8)],["-ln(e*x)"],4,""),
+Level([(3.8,18)],[(3,10),(2,5.5),(1,2.5),(0,1.5)],["2**x"],1,"Good Luck!"),
+Level([(-2.9,13)],[(-2,5.7),(-1,2.2),(0,1.5),(1,2.3)],["cosh(x)"],2,"Think about all that you are /instead of all you are not"),
+Level([(7,4.7)],[(4,3.5),(3,2.6),(2,2),(1,0.5)],["log(x**2)"],3,"your future needs you. /Your past doesn't"),
+Level([(0.5,1.5)],[(1,-0.5),(3,-1.5),(6,-2.6),(9,-2.8)],["-ln(e*x)"],4,"Dogs come when they're called; /cats take a message and get back to you later"),
 Level([(4,10.5)],[(3,6.5),(2,3.5),(1,2.3),(0,1.5),(-3,0.55)],["sqrt(3**x)"],5,""),
 Level([(0.8,3)],[(0,1.2),(-0.5,0),(-1,-1.8),(-2,-2.5),(-4,-2.5),(-6,-2.5)],["erf(x)*3"],6,"")
 ]
 
 
 
-def intro():
-    global all_levels
-    global current_level
-    #print((screenX - 700) // 3)
+def first():
+    global all_levels, current_level
     buttons = []
     for i in range(4):
         buttons.append(Button(200 + 300 * i, 400, 125, 50, light_blue, "Grade " + str(i + 9)))
@@ -521,8 +520,11 @@ def intro():
                     clicks.play()
                     selectedGrade = int(i.text.split()[1])
                     all_levels = [grade9, grade10, grade11, grade12][selectedGrade - 9]
+                    second()
                     break
 
+def second():
+    global all_levels, current_level
     eType = None
     buttons = []
     row1 = [9 if len(all_levels) > 9 else len(all_levels)][0]
@@ -537,6 +539,7 @@ def intro():
 
     selectedLevel = -1
     while selectedLevel < 0:
+        back_button = Button(50, 50, 50, 50, light_blue, "<")
         mouse = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -545,10 +548,11 @@ def intro():
             screen.fill(white)
             [x.draw() for x in buttons]
 
-            screen.blit(pygame.font.Font(None, 64).render("Select your level.", True, black), [screenX / 2 - 250, screenY / 2 - 100])
+            screen.blit(pygame.font.Font(None, 64).render("Select your level.", True, black), [screenX / 2 - 200, screenY / 2 - 100])
             clock.tick(60)
+            back_button.draw()
             pygame.display.update()
-            time.sleep(0.1)
+            
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 for i in buttons:
@@ -558,7 +562,9 @@ def intro():
                         current_level = selectedLevel
                         all_levels[current_level-1].set_level(False)
                         break
-intro()
+                if back_button.mouseon(mouse):
+                    first()
+first()
 
 all_levels[current_level-1].set_level(False)
 level_passed = True
@@ -575,10 +581,13 @@ while True:
         if event.type == pygame.MOUSEBUTTONDOWN:
 
             if level_passed and menu.next_button.mouseon(mouse):
-                all_curves, all_points = [], []
-                current_level += 1
-                all_levels[current_level-1].set_level(False)
-                win.play()
+                try:
+                    all_curves, all_points = [], []
+                    current_level += 1
+                    all_levels[current_level-1].set_level(False)
+                    win.play()
+                except:
+                    first()
 
             if menu.menu and menu.reset_button.mouseon(mouse):
                 lose.play()
@@ -612,7 +621,7 @@ while True:
                 clicks.play()
                 menu.pause = False
                 menu.menu = True
-                intro()
+                first()
                 break
 
             if menu.pause and menu.close_settings.mouseon(mouse):
